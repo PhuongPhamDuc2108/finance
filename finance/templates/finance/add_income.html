@@ -1,0 +1,38 @@
+{% extends 'finance/base_generic.html' %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-start mt-5">
+    <div class="card p-4" style="max-width: 600px; width: 100%;">
+        <h2 class="text-center mb-4">Add Income</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3 row">
+                <label for="id_amount" class="col-sm-4 col-form-label">Amount:</label>
+                <div class="col-sm-8">
+                    
+                    {{ form.amount }}
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="id_source" class="col-sm-4 col-form-label">Source:</label>
+                <div class="col-sm-8">
+                   
+                    {{ form.source }}
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="id_date" class="col-sm-4 col-form-label">Date:</label>
+                <div class="col-sm-8 ">
+                    
+                    {{ form.date }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <button type="submit" class="btn btn-primary w-100">Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
