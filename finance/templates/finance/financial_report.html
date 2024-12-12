@@ -4,10 +4,10 @@
 <div class="container mt-4">
     <h2>Báo Cáo Tài Chính</h2>
 
+    <!-- Bảng Thu Nhập và Chi Tiêu -->
     <div class="container mt-5">
         <h2 class="text-center mb-4">Báo Cáo Tài Chính</h2>
-    
-        <!-- Bảng Thu Nhập và Chi Tiêu -->
+
         <div class="row mt-4">
             <div class="col-md-6">
                 <h4>Bảng Thu Nhập</h4>
@@ -19,7 +19,7 @@
                                 <th>Nguồn</th>
                                 <th>Số Tiền (VND)</th>
                                 <th>Ngày</th>
-                                <th>Hành Động</th>  <!-- Cột Hành Động -->
+                                <th>Hành Động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -41,7 +41,7 @@
                     </table>
                 </form>
             </div>
-    
+
             <div class="col-md-6">
                 <h4>Bảng Chi Tiêu</h4>
                 <form method="POST">
@@ -52,7 +52,7 @@
                                 <th>Danh Mục</th>
                                 <th>Số Tiền (VND)</th>
                                 <th>Ngày</th>
-                                <th>Hành Động</th>  <!-- Cột Hành Động -->
+                                <th>Hành Động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -77,97 +77,162 @@
         </div>
     </div>
 
-    <!-- Biểu Đồ Thu Nhập và Chi Tiêu -->
+    <!-- Biểu Đồ Thu Nhập và Chi Tiêu Theo Tháng -->
+    <div class="row mt-4">
+        <div class="col-md-6 text-center">
+            <h5>Biểu Đồ Thu Nhập Theo Tháng</h5>
+            <canvas id="incomeBarChart" width="800" height="400"></canvas>
+        </div>
+        <div class="col-md-6 text-center">
+            <h5>Biểu Đồ Chi Tiêu Theo Tháng</h5>
+            <canvas id="expenseBarChart" width="800" height="400"></canvas>
+        </div>
+    </div>
+
+    <!-- Biểu Đồ Tròn Phân Loại Thu Nhập và Chi Tiêu -->
     <div class="row mt-4">
         <div class="col-md-6 text-center">
             <h5>Phân Loại Thu Nhập</h5>
-            <canvas id="incomeChart" width="200" height="200"></canvas>
+            <canvas id="incomePieChart" width="200" height="200"></canvas>
         </div>
         <div class="col-md-6 text-center">
             <h5>Phân Loại Chi Tiêu</h5>
-            <canvas id="expenseChart" width="200" height="200"></canvas>
+            <canvas id="expensePieChart" width="200" height="200"></canvas>
         </div>
     </div>
-</div>
 
-<!-- Thêm Chart.js từ CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Thêm Chart.js từ CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- JavaScript để vẽ biểu đồ -->
-<script>
-    // Dữ liệu biểu đồ thu nhập
-    const incomeCategories = JSON.parse('{{ income_categories|escapejs }}');
-    const incomeTotals = JSON.parse('{{ income_totals|escapejs }}');
+    <!-- Mã JavaScript để vẽ biểu đồ -->
+    <script>
+        // Lấy dữ liệu từ Django context
+        const months = JSON.parse('{{ months|escapejs }}');  // Danh sách tháng
+        const incomeValues = JSON.parse('{{ income_values|escapejs }}');  // Thu nhập theo tháng
+        const expenseValues = JSON.parse('{{ expense_values|escapejs }}');  // Chi tiêu theo tháng
 
-    // Dữ liệu biểu đồ chi tiêu
-    const expenseCategories = JSON.parse('{{ expense_categories|escapejs }}');
-    const expenseTotals = JSON.parse('{{ expense_totals|escapejs }}');
+        const incomeCategories = JSON.parse('{{ income_categories|escapejs }}');
+        const incomeTotals = JSON.parse('{{ income_totals|escapejs }}');
+        const expenseCategories = JSON.parse('{{ expense_categories|escapejs }}');
+        const expenseTotals = JSON.parse('{{ expense_totals|escapejs }}');
 
-    // Hàm tạo màu ngẫu nhiên
-    function generateRandomColors(count) {
-        const colors = [];
-        for (let i = 0; i < count; i++) {
-            const r = Math.floor(Math.random() * 255);
-            const g = Math.floor(Math.random() * 255);
-            const b = Math.floor(Math.random() * 255);
-            colors.push(`rgba(${r}, ${g}, ${b}, 0.6)`); // Màu nền
+        // Hàm tạo màu ngẫu nhiên cho các mục
+        function generateRandomColors(count) {
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                const r = Math.floor(Math.random() * 255);
+                const g = Math.floor(Math.random() * 255);
+                const b = Math.floor(Math.random() * 255);
+                colors.push(`rgba(${r}, ${g}, ${b}, 0.6)`); // Màu nền
+            }
+            return colors;
         }
-        return colors;
-    }
 
-    // Tạo màu sắc cho các danh mục
-    const incomeColors = generateRandomColors(incomeCategories.length);
-    const expenseColors = generateRandomColors(expenseCategories.length);
-
-    // Vẽ biểu đồ Thu Nhập
-    const incomeCtx = document.getElementById('incomeChart').getContext('2d');
-    const incomeChart = new Chart(incomeCtx, {
-        type: 'pie',
-        data: {
-            labels: incomeCategories,
-            datasets: [{
-                data: incomeTotals,
-                backgroundColor: incomeColors, // Màu nền động
-                borderColor: incomeColors.map(color => color.replace('0.6', '1')), // Viền đậm hơn
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                tooltip: {
-                    enabled: true,
-                },
+        // Vẽ Biểu Đồ Cột Thu Nhập
+        const incomeBarCtx = document.getElementById('incomeBarChart').getContext('2d');
+        new Chart(incomeBarCtx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Thu Nhập',
+                    data: incomeValues,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                }]
             },
-        }
-    });
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Số Tiền (VND)',
+                        }
+                    }
+                }
+            }
+        });
 
-    // Vẽ biểu đồ Chi Tiêu
-    const expenseCtx = document.getElementById('expenseChart').getContext('2d');
-    const expenseChart = new Chart(expenseCtx, {
-        type: 'pie',
-        data: {
-            labels: expenseCategories,
-            datasets: [{
-                data: expenseTotals,
-                backgroundColor: expenseColors, // Màu nền động
-                borderColor: expenseColors.map(color => color.replace('0.6', '1')), // Viền đậm hơn
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                tooltip: {
-                    enabled: true,
-                },
+        // Vẽ Biểu Đồ Cột Chi Tiêu
+        const expenseBarCtx = document.getElementById('expenseBarChart').getContext('2d');
+        new Chart(expenseBarCtx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Chi Tiêu',
+                    data: expenseValues,
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                }]
             },
-        }
-    });
-</script>
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Số Tiền (VND)',
+                        }
+                    }
+                }
+            }
+        });
+
+        // Vẽ Biểu Đồ Tròn Thu Nhập
+        const incomePieCtx = document.getElementById('incomePieChart').getContext('2d');
+        new Chart(incomePieCtx, {
+            type: 'pie',
+            data: {
+                labels: incomeCategories,
+                datasets: [{
+                    data: incomeTotals,
+                    backgroundColor: generateRandomColors(incomeCategories.length),
+                    borderColor: incomeCategories.map(color => color.replace('0.6', '1')),
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        enabled: true,
+                    },
+                },
+            }
+        });
+
+        // Vẽ Biểu Đồ Tròn Chi Tiêu
+        const expensePieCtx = document.getElementById('expensePieChart').getContext('2d');
+        new Chart(expensePieCtx, {
+            type: 'pie',
+            data: {
+                labels: expenseCategories,
+                datasets: [{
+                    data: expenseTotals,
+                    backgroundColor: generateRandomColors(expenseCategories.length),
+                    borderColor: expenseCategories.map(color => color.replace('0.6', '1')),
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        enabled: true,
+                    },
+                },
+            }
+        });
+    </script>
 
 {% endblock %}

@@ -55,35 +55,56 @@ def financial_report(request):
     # Lấy năm hiện tại
     current_year = datetime.now().year
 
-    # Lấy dữ liệu chi tiết thu nhập
-    incomes = Income.objects.filter(user=request.user)
-    income_data = incomes.values('source').annotate(total=Sum('amount'))
-    income_categories = [item['source'] for item in income_data]
-    income_totals = [float(item['total']) for item in income_data]
+    # Lấy dữ liệu thu nhập theo tháng và nhóm theo loại thu nhập (source)
+    incomes = Income.objects.filter(user=request.user, date__year=current_year)
+    income_data = incomes.values('source', 'date__month').annotate(total=Sum('amount')).order_by('date__month')
 
-    # Lấy dữ liệu chi tiết chi tiêu
-    expenses = Expense.objects.filter(user=request.user)
-    expense_data = expenses.values('category').annotate(total=Sum('amount'))
+    income_categories = [item['source'] for item in income_data]
+    income_totals = [float(item['total']) for item in income_data]  # Chuyển Decimal thành float
+    income_by_month = [sum([float(item['total']) for item in income_data if item['date__month'] == month]) for month in range(1, 13)]
+
+    # Lấy dữ liệu chi tiêu theo tháng và nhóm theo danh mục (category)
+    expenses = Expense.objects.filter(user=request.user, date__year=current_year)
+    expense_data = expenses.values('category', 'date__month').annotate(total=Sum('amount')).order_by('date__month')
+
     expense_categories = [item['category'] for item in expense_data]
-    expense_totals = [float(item['total']) for item in expense_data]
+    expense_totals = [float(item['total']) for item in expense_data]  # Chuyển Decimal thành float
+    expense_by_month = [sum([float(item['total']) for item in expense_data if item['date__month'] == month]) for month in range(1, 13)]
+
+    # Tính tổng thu nhập và chi tiêu theo từng loại (cho biểu đồ tròn)
+    total_income_by_category = incomes.values('source').annotate(total=Sum('amount'))
+    total_expense_by_category = expenses.values('category').annotate(total=Sum('amount'))
+
+    income_category_names = [item['source'] for item in total_income_by_category]
+    income_category_totals = [float(item['total']) for item in total_income_by_category]
+
+    expense_category_names = [item['category'] for item in total_expense_by_category]
+    expense_category_totals = [float(item['total']) for item in total_expense_by_category]
 
     # Tổng thu nhập và chi tiêu
-    total_income = incomes.aggregate(Sum('amount'))['amount__sum'] or 0
-    total_expense = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
+    total_income = sum(income_by_month)
+    total_expense = sum(expense_by_month)
+    balance = total_income - total_expense
+    advice = "Hãy tiết kiệm!" if balance < 0 else "Bạn có thể tiết kiệm thêm!"
 
     # Truyền dữ liệu vào template
     context = {
-        'incomes': incomes,
-        'expenses': expenses,
-        'income_categories': json.dumps(income_categories),
-        'income_totals': json.dumps(income_totals),
-        'expense_categories': json.dumps(expense_categories),
-        'expense_totals': json.dumps(expense_totals),
+        'months': json.dumps([calendar.month_name[m] for m in range(1, 13)]),  # Tên tháng (January, February, ...)
+        'income_values': json.dumps(income_by_month),
+        'expense_values': json.dumps(expense_by_month),
+        'income_categories': json.dumps(income_category_names),
+        'income_totals': json.dumps(income_category_totals),
+        'expense_categories': json.dumps(expense_category_names),
+        'expense_totals': json.dumps(expense_category_totals),
         'total_income': total_income,
         'total_expense': total_expense,
+        'balance': balance,
+        'advice': advice,
+        'incomes': incomes,  # Truyền dữ liệu thu nhập vào template
+        'expenses': expenses,  # Truyền dữ liệu chi tiêu vào template
     }
-    return render(request, 'finance/financial_report.html', context)
 
+    return render(request, 'finance/financial_report.html', context)
 @login_required
 def forecast_finance(request):
     # Lấy năm hiện tại
