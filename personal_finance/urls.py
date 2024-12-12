@@ -19,6 +19,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),  # Thêm dòng này
+    path('accounts/', include('django.contrib.auth.urls')),  
     path('', include('finance.urls')),  # Đưa các URL của finance vào đây
 ]

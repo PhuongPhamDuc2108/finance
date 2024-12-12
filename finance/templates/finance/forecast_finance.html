@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <h2 class="text-center">Dự Báo Tài Chính</h2>
 
-    <!-- Thông Tin Tài Chính -->
+    
     <div class="row mt-4">
         <div class="col-md-12">
             <h4>Thông Tin Tài Chính</h4>
@@ -15,7 +15,7 @@
         </div>
     </div>
 
-    <!-- Biểu Đồ Báo Cáo Thực Tế -->
+   
     <div class="row mt-4">
         <div class="col-md-12 text-center">
             <h4>Biểu Đồ Thu Nhập và Chi Tiêu Thực Tế</h4>
@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    <!-- Biểu Đồ Dự Báo AI -->
+    
     <div class="row mt-4">
         <div class="col-md-12 text-center">
             <h4>Biểu Đồ Dự Báo Thu Nhập và Chi Tiêu (Dự Báo AI)</h4>
@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <!-- Câu Kết Luận -->
+    
     <div class="row mt-4">
         <div class="col-md-12">
             <h4>Kết Luận</h4>
@@ -39,7 +39,7 @@
         </div>
     </div>
 
-    <!-- Câu Lời Khuyên Dự Báo -->
+   
     <div class="row mt-4">
         <div class="col-md-12">
             <h4>Lời Khuyên Dự Báo</h4>
@@ -48,10 +48,10 @@
     </div>
 </div>
 
-<!-- Thêm Chart.js từ CDN -->
+<!-- Thêm Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Mã JavaScript để vẽ biểu đồ -->
+
 <script>
     // Lấy dữ liệu từ Django context
     const months = JSON.parse('{{ months|escapejs }}');  // Danh sách tháng
@@ -63,25 +63,25 @@
     // Vẽ biểu đồ thu nhập và chi tiêu thực tế (Biểu đồ 1)
     const actualCtx = document.getElementById('actualChart').getContext('2d');
     const actualChart = new Chart(actualCtx, {
-        type: 'line',  // Loại biểu đồ là đường
+        type: 'line',  // line chartrt
         data: {
             labels: months,  // Các tháng được hiển thị trên trục X
             datasets: [
                 {
                     label: 'Thu Nhập Thực Tế',
                     data: incomeValues,  // Dữ liệu thu nhập theo tháng
-                    borderColor: 'rgba(75, 192, 192, 1)',  // Màu đường thu nhập
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',  // Màu nền thu nhập
+                    borderColor: 'rgba(75, 192, 192, 1)', 
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',  
                     borderWidth: 2,
-                    tension: 0.4,  // Độ cong của đường
+                    tension: 0.4, 
                 },
                 {
                     label: 'Chi Tiêu Thực Tế',
                     data: expenseValues,  // Dữ liệu chi tiêu theo tháng
-                    borderColor: 'rgba(255, 99, 132, 1)',  // Màu đường chi tiêu
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',  // Màu nền chi tiêu
+                    borderColor: 'rgba(255, 99, 132, 1)',  
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',  
                     borderWidth: 2,
-                    tension: 0.4,  // Độ cong của đường
+                    tension: 0.4,  
                 },
             ],
         },
@@ -99,15 +99,15 @@
                 x: {
                     title: {
                         display: true,
-                        text: 'Tháng',  // Tiêu đề cho trục X
+                        text: 'Tháng',  
                     },
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Số Tiền (VND)',  // Tiêu đề cho trục Y
+                        text: 'Số Tiền (VND)', 
                     },
-                    beginAtZero: true,  // Đảm bảo trục Y bắt đầu từ 0
+                    beginAtZero: true, 
                 },
             },
         },
@@ -116,69 +116,69 @@
     // Vẽ biểu đồ dự đoán thu nhập và chi tiêu (Biểu đồ 2)
     const forecastCtx = document.getElementById('forecastChart').getContext('2d');
     const forecastChart = new Chart(forecastCtx, {
-        type: 'line',  // Loại biểu đồ là đường
+        type: 'line',  
         data: {
-            labels: months,  // Các tháng được hiển thị trên trục X
+            labels: months,  
             datasets: [
                 {
                     label: 'Thu Nhập Thực Tế',
                     data: incomeValues,  // Dữ liệu thu nhập theo tháng
-                    borderColor: 'rgba(75, 192, 192, 1)',  // Màu đường thu nhập
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',  // Màu nền thu nhập
+                    borderColor: 'rgba(75, 192, 192, 1)',  
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)', 
                     borderWidth: 2,
-                    tension: 0.4,  // Độ cong của đường
+                    tension: 0.4,  
                 },
                 {
                     label: 'Chi Tiêu Thực Tế',
                     data: expenseValues,  // Dữ liệu chi tiêu theo tháng
-                    borderColor: 'rgba(255, 99, 132, 1)',  // Màu đường chi tiêu
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',  // Màu nền chi tiêu
+                    borderColor: 'rgba(255, 99, 132, 1)',  
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',  
                     borderWidth: 2,
-                    tension: 0.4,  // Độ cong của đường
+                    tension: 0.4,  
                 },
                 {
                     label: 'Dự Báo Thu Nhập (AI)',
                     data: predictedIncome,  // Dự đoán thu nhập cho các tháng tiếp theo
-                    borderColor: 'rgba(0, 255, 0, 1)',  // Màu đường dự đoán thu nhập
-                    backgroundColor: 'rgba(0, 255, 0, 0.2)',  // Màu nền dự đoán thu nhập
+                    borderColor: 'rgba(0, 255, 0, 1)',  
+                    backgroundColor: 'rgba(0, 255, 0, 0.2)', 
                     borderWidth: 2,
-                    borderDash: [5, 5],  // Đường kẻ chấm cho dự đoán
-                    tension: 0.4,  // Độ cong của đường
+                    borderDash: [5, 5],  
+                    tension: 0.4,  
                 },
                 {
                     label: 'Dự Báo Chi Tiêu (AI)',
                     data: predictedExpense,  // Dự đoán chi tiêu cho các tháng tiếp theo
-                    borderColor: 'rgba(255, 165, 0, 1)',  // Màu đường dự đoán chi tiêu
-                    backgroundColor: 'rgba(255, 165, 0, 0.2)',  // Màu nền dự đoán chi tiêu
+                    borderColor: 'rgba(255, 165, 0, 1)',  
+                    backgroundColor: 'rgba(255, 165, 0, 0.2)', 
                     borderWidth: 2,
-                    borderDash: [5, 5],  // Đường kẻ chấm cho dự đoán
-                    tension: 0.4,  // Độ cong của đường
+                    borderDash: [5, 5],  
+                    tension: 0.4,  
                 },
             ],
         },
         options: {
-            responsive: true,  // Đảm bảo biểu đồ responsive
+            responsive: true,  
             plugins: {
                 legend: {
-                    position: 'top',  // Đặt legend ở phía trên
+                    position: 'top', 
                 },
                 tooltip: {
-                    enabled: true,  // Bật tooltip khi hover vào dữ liệu
+                    enabled: true,  
                 },
             },
             scales: {
                 x: {
                     title: {
                         display: true,
-                        text: 'Tháng',  // Tiêu đề cho trục X
+                        text: 'Tháng',  
                     },
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Số Tiền (VND)',  // Tiêu đề cho trục Y
+                        text: 'Số Tiền (VND)',  
                     },
-                    beginAtZero: true,  // Đảm bảo trục Y bắt đầu từ 0
+                    beginAtZero: true,  
                 },
             },
         },
