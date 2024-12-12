@@ -34,6 +34,7 @@ def add_income(request):
     else:
         form = IncomeForm(initial={'date': now().date()})  # Tự động điền ngày hiện tại
     return render(request, 'finance/add_income.html', {'form': form})
+
 # Thêm chi tiêu
 @login_required
 def add_expense(request):
@@ -105,6 +106,8 @@ def financial_report(request):
     }
 
     return render(request, 'finance/financial_report.html', context)
+
+
 @login_required
 def forecast_finance(request):
     # Lấy năm hiện tại
@@ -129,7 +132,7 @@ def forecast_finance(request):
     expense_data = {month: float(total) for month, total in expense_by_month}
 
     # Tạo dữ liệu cho biểu đồ
-    months = list(range(1, 13))  # Từ tháng 1 đến tháng 12
+    months = list(range(1, 13))  
     income_values = [income_data.get(month, 0) for month in months]
     expense_values = [expense_data.get(month, 0) for month in months]
 
@@ -141,7 +144,7 @@ def forecast_finance(request):
     })
 
     # Sử dụng LinearRegression để dự đoán
-    X = df[['month']]  # Sử dụng tháng làm biến độc lập
+    X = df[['month']]  
     y_income = df['income']
     y_expense = df['expense']
 
@@ -154,7 +157,7 @@ def forecast_finance(request):
     model_expense.fit(X, y_expense)
 
     # Dự đoán thu nhập và chi tiêu trong năm tiếp theo (Tháng 1 đến tháng 12)
-    future_months = np.array(range(1, 13)).reshape(-1, 1)  # Dự đoán cho các tháng 1 đến 12 của năm sau
+    future_months = np.array(range(1, 13)).reshape(-1, 1)  
     predicted_income = model_income.predict(future_months)
     predicted_expense = model_expense.predict(future_months)
 
@@ -202,7 +205,7 @@ def register(request):
             form.save()
             username = form.cleaned_data.get('username')
             messages.success(request, f'Tài khoản {username} đã được tạo thành công! Bạn có thể đăng nhập.')
-            return redirect('login')  # Sau khi đăng ký, điều hướng đến trang đăng nhập
+            return redirect('login')  
     else:
         form = UserRegistrationForm()
     return render(request, 'registration/register.html', {'form': form})
@@ -212,11 +215,11 @@ def register(request):
 def delete_income(request, income_id):
     income = get_object_or_404(Income, pk=income_id)
     income.delete()
-    return redirect('financial_report')  # Sau khi xóa, chuyển hướng về báo cáo tài chính
+    return redirect('financial_report')  
 
 # Xóa chi tiêu
 @login_required
 def delete_expense(request, expense_id):
     expense = get_object_or_404(Expense, pk=expense_id)
     expense.delete()
-    return redirect('financial_report')  # Sau khi xóa, chuyển hướng về báo cáo tài chính
+    return redirect('financial_report') 
