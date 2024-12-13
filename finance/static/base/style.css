@@ -1,0 +1,54 @@
+/* Cải thiện giao diện navbar */
+.navbar {
+    background-color: #007bff; /* Màu nền xanh */
+    border-radius: 5px;  /* Bo góc navbar */
+}
+
+.navbar .navbar-brand {
+    font-size: 24px;
+    font-weight: bold;
+    color: black;  /* Màu chữ navbar */
+    text-transform: uppercase;
+}
+
+.navbar .navbar-nav .nav-item .nav-link {
+    color: black;  /* Màu chữ trắng */
+    font-size: 16px;
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+}
+
+.navbar .navbar-nav .nav-item .nav-link:hover {
+    color: #FFD700;  /* Màu vàng khi hover */
+    text-decoration: underline;  /* Gạch chân khi hover */
+}
+
+/* Thêm border khi hover trên các nút */
+.navbar .navbar-nav .nav-item .nav-link:active {
+    border-bottom: 2px solid #FFD700; /* Màu viền khi active */
+}
+
+/* Căn chỉnh các mục menu sang phải */
+.navbar-nav {
+    margin-left: auto;
+}
+
+/* Đảm bảo rằng menu trong chế độ mobile (khi màn hình nhỏ) có thể bật/tắt */
+.navbar-toggler {
+    border-color: white;
+}
+
+.navbar-toggler-icon {
+    background-color: white;  /* Đổi màu icon của navbar */
+}
+
+/* Chỉnh navbar trên thiết bị nhỏ */
+@media (max-width: 767px) {
+    .navbar {
+        background-color: #0056b3;  /* Màu navbar khi ở chế độ mobile */
+    }
+
+    .navbar .navbar-nav {
+        text-align: center;
+    }
+}

@@ -1,0 +1,26 @@
+/* Căn chỉnh các textbox để chúng có chiều rộng bằng nhau */
+form .col-sm-8 input,
+form .col-sm-8 select,
+form .col-sm-8 textarea {
+    width: 100%;  /* Chiều rộng đầy đủ của textbox */
+    padding: 0.375rem 0.75rem;  /* Padding để làm cho các textbox đều và dễ nhìn */
+    border-radius: 0.25rem;  /* Cạnh mềm mại cho textbox */
+    border: 1px solid #ced4da;  /* Viền nhẹ cho textbox */
+}
+
+/* Đảm bảo các label có chiều rộng đều nhau và căn chỉnh */
+form .col-sm-4 {
+    display: flex;
+    align-items: center;  /* Căn giữa nội dung của label */
+    justify-content: flex-end;  /* Căn phải */
+}
+
+/* Đảm bảo khoảng cách giữa các cột và padding trong form */
+form .row {
+    margin-bottom: 15px;
+}
+
+/* Thêm khoảng cách và chỉnh kích thước các nút */
+form .btn {
+    padding: 12px 20px;  /* Đảm bảo các nút đủ rộng và dễ nhấn */
+}
