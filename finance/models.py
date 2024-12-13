@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import date
-
+from django.contrib.auth.forms import UserCreationForm
+from django import forms
 class Income(models.Model):
     SOURCE_CHOICES = [
         ('Salary', 'Lương'),
@@ -34,3 +35,7 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.category} - {self.amount}"
+    
+
+
+

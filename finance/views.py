@@ -16,6 +16,8 @@ from django.utils.timezone import now
 from django.db.models import Sum
 import calendar
 from datetime import datetime
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login, authenticate
 
 # Trang chủ
 def home(request):
@@ -223,3 +225,18 @@ def delete_expense(request, expense_id):
     expense = get_object_or_404(Expense, pk=expense_id)
     expense.delete()
     return redirect('financial_report') 
+
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('home')  # Sau khi đăng nhập thành công, chuyển hướng về trang home
+    else:
+        form = AuthenticationForm()
+
+    return render(request, 'registration/login.html', {'form': form})
