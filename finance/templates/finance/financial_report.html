@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <h2>Báo Cáo Tài Chính</h2>
 
-    <!-- Bảng Thu Nhập và Chi Tiêu -->
+    
     <div class="container mt-5">
         <h2 class="text-center mb-4">Báo Cáo Tài Chính</h2>
 
@@ -77,7 +77,7 @@
         </div>
     </div>
 
-    <!-- Biểu Đồ Thu Nhập và Chi Tiêu Theo Tháng -->
+    
     <div class="row mt-4">
         <div class="col-md-6 text-center">
             <h5>Biểu Đồ Thu Nhập Theo Tháng</h5>
@@ -89,7 +89,7 @@
         </div>
     </div>
 
-    <!-- Biểu Đồ Tròn Phân Loại Thu Nhập và Chi Tiêu -->
+    
     <div class="row mt-4">
         <div class="col-md-6 text-center">
             <h5>Phân Loại Thu Nhập</h5>
@@ -101,12 +101,13 @@
         </div>
     </div>
 
-    <!-- Thêm Chart.js từ CDN -->
+    <!-- Thêm Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Mã JavaScript để vẽ biểu đồ -->
+    
     <script>
-        // Lấy dữ liệu từ Django context
+
+        // Lấy dữ liệu từ context trong view 
         const months = JSON.parse('{{ months|escapejs }}');  // Danh sách tháng
         const incomeValues = JSON.parse('{{ income_values|escapejs }}');  // Thu nhập theo tháng
         const expenseValues = JSON.parse('{{ expense_values|escapejs }}');  // Chi tiêu theo tháng
@@ -123,7 +124,7 @@
                 const r = Math.floor(Math.random() * 255);
                 const g = Math.floor(Math.random() * 255);
                 const b = Math.floor(Math.random() * 255);
-                colors.push(`rgba(${r}, ${g}, ${b}, 0.6)`); // Màu nền
+                colors.push(`rgba(${r}, ${g}, ${b}, 0.6)`); 
             }
             return colors;
         }
