@@ -1,34 +1,60 @@
-/* Đảm bảo các textbox có chiều rộng bằng nhau và bằng với nút "Add" */
-form .form-control {
+/* Căn chỉnh lại container để form không quá to và ở giữa */
+.container {
+    max-width: 600px;  /* Tăng chiều rộng tối đa của form */
+    margin-top: 60px;  /* Tạo khoảng cách trên form */
+    margin-bottom: 20px;
+}
+
+/* Tạo card có góc bo tròn và bóng nhẹ */
+.card {
+    padding: 30px;  /* Tăng padding cho form */
+    border-radius: 10px;  /* Góc bo tròn */
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);  /* Bóng nhẹ */
+}
+
+/* Tăng kích thước cho các trường nhập liệu */
+.form-control {
     width: 100%;  /* Đảm bảo textbox chiếm toàn bộ chiều rộng */
-    padding: 10px;  /* Padding lớn để tạo không gian thoáng cho text */
-    font-size: 1.25rem;  /* Tăng kích thước font chữ trong textbox */
-    border-radius: 0.25rem;  /* Bo góc cho textbox */
-    border: 1px solid #ced4da;  /* Viền nhẹ cho textbox */
+    padding: 10px 15px;  /* Điều chỉnh padding cho textbox */
+    font-size: 16px;  /* Kích thước chữ lớn hơn */
+    border-radius: 10px;  /* Bo góc cho textbox */
+    border: 1px solid #ced4da;  /* Viền sáng nhẹ cho textbox */
 }
 
-/* Đảm bảo label có chiều rộng bằng nhau và nằm trên textbox */
-form .form-label {
-    display: block;  /* Đặt label là block để nó nằm trên textbox */
-    margin-bottom: 8px;  /* Khoảng cách giữa label và textbox */
-    font-size: 1.25rem;  /* Tăng kích thước chữ cho label */
+/* Căn chỉnh các label trên textbox */
+.form-group label {
+    font-weight: bold;  /* Làm đậm chữ */
+    margin-bottom: 5px;  /* Thêm khoảng cách dưới label */
 }
 
-/* Đảm bảo khoảng cách giữa các dòng */
-form .mb-3 {
-    margin-bottom: 20px;  /* Khoảng cách giữa các phần tử trong form */
+/* Điều chỉnh nút đăng ký */
+button[type="submit"] {
+    width: 100%;  /* Nút chiếm toàn bộ chiều rộng */
+    padding: 12px;  /* Thêm padding cho nút */
+    background-color: #007bff;  /* Màu nền nút */
+    color: white;  /* Màu chữ của nút */
+    border-radius: 10px;  /* Bo tròn góc cho nút */
+    font-size: 18px;  /* Kích thước chữ */
+    cursor: pointer;  /* Hiệu ứng con trỏ khi hover */
 }
 
-/* Điều chỉnh nút submit để dễ nhấn và có cùng chiều rộng với textbox */
-form .btn {
-    padding: 12px 20px;  /* Đảm bảo các nút đủ rộng và dễ nhấn */
-    font-size: 1.25rem;  /* Tăng kích thước chữ của nút */
-    border-radius: 0.25rem;  /* Bo góc cho nút */
-    width: 100%;  /* Đảm bảo nút chiếm toàn bộ chiều rộng */
-    transition: all 0.3s ease;  /* Thêm hiệu ứng khi di chuột */
+/* Thêm hiệu ứng hover khi di chuột qua nút */
+button[type="submit"]:hover {
+    background-color: #0056b3;  /* Đổi màu nền khi hover vào nút */
 }
 
-/* Thêm hiệu ứng hover cho nút submit */
-form .btn:hover {
-    background-color: #0056b3;  /* Màu nền khi hover */
+/* Căn chỉnh các liên kết phía dưới */
+.text-center a {
+    color: #007bff;  /* Màu chữ của liên kết */
+    text-decoration: none;
+}
+
+/* Đổi màu khi hover vào liên kết */
+.text-center a:hover {
+    text-decoration: underline;  /* Gạch dưới khi hover */
+}
+
+/* Đảm bảo khoảng cách giữa các trường nhập liệu */
+.form-group {
+    margin-bottom: 25px;  /* Thêm khoảng cách dưới mỗi trường */
 }
