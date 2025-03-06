@@ -57,6 +57,7 @@ def add_expense(request):
 def financial_report(request):
     # Lấy năm hiện tại
     current_year = datetime.now().year
+    current_month = datetime.now().month
 
     # Lấy dữ liệu thu nhập theo tháng và nhóm theo loại thu nhập (source)
     incomes = Income.objects.filter(user=request.user, date__year=current_year)
@@ -84,6 +85,15 @@ def financial_report(request):
     expense_category_names = [item['category'] for item in total_expense_by_category]
     expense_category_totals = [float(item['total']) for item in total_expense_by_category]
 
+    # Lấy dữ liệu thu nhập và chi tiêu theo ngày trong tháng hiện tại
+    daily_income_data = incomes.filter(date__month=current_month).values('date__day').annotate(total=Sum('amount')).order_by('date__day')
+    daily_income_days = [item['date__day'] for item in daily_income_data]
+    daily_income_totals = [float(item['total']) for item in daily_income_data]
+
+    daily_expense_data = expenses.filter(date__month=current_month).values('date__day').annotate(total=Sum('amount')).order_by('date__day')
+    daily_expense_days = [item['date__day'] for item in daily_expense_data]
+    daily_expense_totals = [float(item['total']) for item in daily_expense_data]
+
     # Tổng thu nhập và chi tiêu
     total_income = sum(income_by_month)
     total_expense = sum(expense_by_month)
@@ -105,6 +115,10 @@ def financial_report(request):
         'advice': advice,
         'incomes': incomes,  # Truyền dữ liệu thu nhập vào template
         'expenses': expenses,  # Truyền dữ liệu chi tiêu vào template
+        'daily_income_days': json.dumps(daily_income_days),
+        'daily_income_totals': json.dumps(daily_income_totals),
+        'daily_expense_days': json.dumps(daily_expense_days),
+        'daily_expense_totals': json.dumps(daily_expense_totals),
     }
 
     return render(request, 'finance/financial_report.html', context)
