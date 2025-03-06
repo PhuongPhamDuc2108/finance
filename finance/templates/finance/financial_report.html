@@ -1,8 +1,8 @@
+<link href="/static/finance/finance_report.css" rel="stylesheet">
 {% extends 'finance/base_generic.html' %}
 
 {% block content %}
 <div class="container mt-4 bg-gray-100 p-6 rounded-lg shadow-lg">
-    <h2 class="text-center text-blue-600">Báo Cáo Tài Chính</h2>
 
     <div class="container mt-5">
         <h2 class="text-center mb-4 text-indigo-500">Báo Cáo Tài Chính</h2>
@@ -12,7 +12,7 @@
                 <h4 class="text-green-600">Bảng Thu Nhập</h4>
                 <form method="POST">
                     {% csrf_token %}
-                    <table class="table-auto w-full bg-gradient-to-r from-blue-50 to-purple-50 shadow-md rounded-lg transform transition duration-500 hover:scale-105">
+                    <table class="table-auto w-full bg-gradient-to-r from-blue-50 to-purple-50 shadow-md rounded-lg">
                         <thead class="bg-gradient-to-r from-blue-100 to-purple-100">
                             <tr>
                                 <th class="px-4 py-2">Nguồn</th>
@@ -23,7 +23,7 @@
                         </thead>
                         <tbody>
                             {% for income in incomes %}
-                            <tr class="hover:bg-blue-100 transform transition duration-500 hover:scale-105 hover:shadow-lg">
+                            <tr class="transition-all duration-300 ease-in-out hover:scale-105 hover:bg-blue-200 hover:shadow-lg">
                                 <td class="border px-4 py-2">{{ income.source }}</td>
                                 <td class="border px-4 py-2">{{ income.amount }}</td>
                                 <td class="border px-4 py-2">{{ income.date|date:"d/m/Y" }}</td>
@@ -45,7 +45,7 @@
                 <h4 class="text-red-600">Bảng Chi Tiêu</h4>
                 <form method="POST">
                     {% csrf_token %}
-                    <table class="table-auto w-full bg-gradient-to-r from-yellow-50 to-red-50 shadow-md rounded-lg transform transition duration-500 hover:scale-105">
+                    <table class="table-auto w-full bg-gradient-to-r from-yellow-50 to-red-50 shadow-md rounded-lg">
                         <thead class="bg-gradient-to-r from-yellow-100 to-red-100">
                             <tr>
                                 <th class="px-4 py-2">Danh Mục</th>
@@ -56,7 +56,7 @@
                         </thead>
                         <tbody>
                             {% for expense in expenses %}
-                            <tr class="hover:bg-yellow-100 transform transition duration-500 hover:scale-105 hover:shadow-lg">
+                            <tr class="hover:bg-yellow-100 transform transition duration-300 ease-in-out hover:scale-105 hover:shadow-lg">
                                 <td class="border px-4 py-2">{{ expense.get_category_display }}</td>
                                 <td class="border px-4 py-2">{{ expense.amount }}</td>
                                 <td class="border px-4 py-2">{{ expense.date|date:"d/m/Y" }}</td>

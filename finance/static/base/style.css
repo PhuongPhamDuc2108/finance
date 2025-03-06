@@ -1,54 +1,71 @@
-/* Cải thiện giao diện navbar */
+/* 🌟 Thiết kế tổng thể */
+body {
+    background-color: #ffffff; /* Nền trắng */
+    color: #000; /* Màu chữ đen */
+    font-family: "Inter", sans-serif; /* Font chữ hiện đại */
+    margin: 0;
+}
+
+/* 🔥 Navbar giống Figma */
 .navbar {
-    background-color: #007bff; /* Màu nền xanh */
-    border-radius: 5px;  /* Bo góc navbar */
+    background-color: #ffffff !important; /* Nền navbar trắng */
+    border-bottom: 1px solid #e5e5e5; /* Đường viền dưới nhẹ */
+    padding: 12px 20px;
+    font-weight: 500;
 }
 
-.navbar .navbar-brand {
-    font-size: 24px;
+/* 🌐 Navbar Brand */
+.navbar-brand {
+    font-size: 1.4rem;
     font-weight: bold;
-    color: black;  /* Màu chữ navbar */
-    text-transform: uppercase;
+    color: #000 !important;
 }
 
-.navbar .navbar-nav .nav-item .nav-link {
-    color: black;  /* Màu chữ trắng */
-    font-size: 16px;
-    padding: 10px 15px;
-    transition: all 0.3s ease;
+/* 🏷️ Navbar Links */
+.navbar-nav .nav-link {
+    color: #000 !important;
+    font-size: 1.1rem;
+    padding: 8px 15px;
+    transition: all 0.2s ease-in-out;
 }
 
-.navbar .navbar-nav .nav-item .nav-link:hover {
-    color: #FFD700;  /* Màu vàng khi hover */
-    text-decoration: underline;  /* Gạch chân khi hover */
+/* ✨ Hover hiệu ứng */
+.navbar-nav .nav-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 5px;
+    color: #000 !important;
 }
 
-/* Thêm border khi hover trên các nút */
-.navbar .navbar-nav .nav-item .nav-link:active {
-    border-bottom: 2px solid #FFD700; /* Màu viền khi active */
+/* 🔲 Navbar Buttons */
+.navbar .btn-outline-dark {
+    border: 2px solid #000;
+    color: #000;
+    font-weight: 600;
+    padding: 8px 16px;
+    transition: all 0.3s;
 }
 
-/* Căn chỉnh các mục menu sang phải */
-.navbar-nav {
-    margin-left: auto;
+.navbar .btn-outline-dark:hover {
+    background-color: #000;
+    color: #fff;
 }
 
-/* Đảm bảo rằng menu trong chế độ mobile (khi màn hình nhỏ) có thể bật/tắt */
-.navbar-toggler {
-    border-color: white;
+/* 🖤 Navbar Button - Get Started */
+.navbar .btn-dark {
+    background-color: #000;
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 16px;
+    transition: all 0.3s;
 }
 
-.navbar-toggler-icon {
-    background-color: white;  /* Đổi màu icon của navbar */
+.navbar .btn-dark:hover {
+    background-color: #333;
 }
 
-/* Chỉnh navbar trên thiết bị nhỏ */
-@media (max-width: 767px) {
+/* 📱 Responsive */
+@media (max-width: 991px) {
     .navbar {
-        background-color: #0056b3;  /* Màu navbar khi ở chế độ mobile */
-    }
-
-    .navbar .navbar-nav {
-        text-align: center;
+        border-bottom: none;
     }
 }
