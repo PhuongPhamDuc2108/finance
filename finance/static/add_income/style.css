@@ -1,60 +1,46 @@
-/* Căn chỉnh lại container để form không quá to và ở giữa */
+body {
+    background-color: #E0F7FA; /* Light cyan background */
+}
+
 .container {
-    max-width: 600px;  /* Tăng chiều rộng tối đa của form */
-    margin-top: 60px;  /* Tạo khoảng cách trên form */
-    margin-bottom: 20px;
+    height: 100%;
 }
 
-/* Tạo card có góc bo tròn và bóng nhẹ */
 .card {
-    padding: 30px;  /* Tăng padding cho form */
-    border-radius: 10px;  /* Góc bo tròn */
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);  /* Bóng nhẹ */
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #E3F2FD; /* Light blue background for the form */
 }
 
-/* Tăng kích thước cho các trường nhập liệu */
-.form-control {
-    width: 100%;  /* Đảm bảo textbox chiếm toàn bộ chiều rộng */
-    padding: 10px 15px;  /* Điều chỉnh padding cho textbox */
-    font-size: 16px;  /* Kích thước chữ lớn hơn */
-    border-radius: 10px;  /* Bo góc cho textbox */
-    border: 1px solid #ced4da;  /* Viền sáng nhẹ cho textbox */
+label {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    color: #00796B; /* Teal color */
 }
 
-/* Căn chỉnh các label trên textbox */
-.form-group label {
-    font-weight: bold;  /* Làm đậm chữ */
-    margin-bottom: 5px;  /* Thêm khoảng cách dưới label */
+input, select, textarea {
+    border-radius: 8px;
+    border: 1px solid #B2DFDB; /* Light teal border */
+    padding: 10px;
+    width: 100%;
+    background-color: #E0F2F1; /* Light green-blue background for inputs */
 }
 
-/* Điều chỉnh nút đăng ký */
-button[type="submit"] {
-    width: 100%;  /* Nút chiếm toàn bộ chiều rộng */
-    padding: 12px;  /* Thêm padding cho nút */
-    background-color: #007bff;  /* Màu nền nút */
-    color: white;  /* Màu chữ của nút */
-    border-radius: 10px;  /* Bo tròn góc cho nút */
-    font-size: 18px;  /* Kích thước chữ */
-    cursor: pointer;  /* Hiệu ứng con trỏ khi hover */
+button {
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 16px;
+    background-color: #FF7043; /* Deep orange background */
+    border-color: #FF7043;
+    color: white;
 }
 
-/* Thêm hiệu ứng hover khi di chuột qua nút */
-button[type="submit"]:hover {
-    background-color: #0056b3;  /* Đổi màu nền khi hover vào nút */
+button.btn-primary:hover {
+    background-color: #F4511E; /* Darker deep orange */
+    border-color: #E64A19;
 }
 
-/* Căn chỉnh các liên kết phía dưới */
-.text-center a {
-    color: #007bff;  /* Màu chữ của liên kết */
-    text-decoration: none;
-}
-
-/* Đổi màu khi hover vào liên kết */
-.text-center a:hover {
-    text-decoration: underline;  /* Gạch dưới khi hover */
-}
-
-/* Đảm bảo khoảng cách giữa các trường nhập liệu */
-.form-group {
-    margin-bottom: 25px;  /* Thêm khoảng cách dưới mỗi trường */
+h2 {
+    color: #00796B; /* Teal color */
 }
