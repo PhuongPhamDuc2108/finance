@@ -36,6 +36,15 @@ class Expense(models.Model):
     def __str__(self):
         return f"{self.category} - {self.amount}"
     
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    age = models.IntegerField(null=True, blank=True)
+    occupation = models.CharField(max_length=100, null=True, blank=True)
+    image = models.ImageField(default='default.jpg', upload_to='img/profile_pics')
+
+    def __str__(self):
+        return f'{self.user.username} Profile'
+    
 
 
 

@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -13,4 +15,5 @@ urlpatterns = [
     path('delete_income/<int:income_id>/', views.delete_income, name='delete_income'),
     path('delete_expense/<int:expense_id>/', views.delete_expense, name='delete_expense'),
     path('login/', views.user_login, name='login'), 
-]
+    path('account/', views.account_settings, name='account_settings'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

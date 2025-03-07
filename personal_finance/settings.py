@@ -127,3 +127,6 @@ LOGOUT_REDIRECT_URL = '/'
 # Redirect URL sau khi đăng nhập thành công
 LOGIN_REDIRECT_URL = '/'  # Hoặc 'financial_report' nếu bạn muốn đưa người dùng đến báo cáo tài chính
 
+import os 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

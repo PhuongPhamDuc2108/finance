@@ -14,6 +14,9 @@
             background-color: #ffffff; /* Màu nền trắng */
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ cho sidebar */
             padding: 20px 15px; /* Căn chỉnh padding */
+            position: fixed; /* Cố định sidebar */
+            top: 0;
+            left: 0;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -109,15 +112,22 @@
         <nav class="sidebar">
             <div>
                 <div class="navbar-brand d-flex align-items-center mb-4">
-                    <span class="fs-4">📌</span>
-                    <span class="ms-2 fw-bold">Financial Management</span>
+                    <a class="nav-link" href="{% url 'home' %}">
+                        <span class="fs-4">📌</span>
+
+                        <span class="ms-2 fw-bold">Finance Manage</span>
+                    </a>
+
                 </div>
     
                 <!-- User Info -->
                 <div class="user-info">
-                    <img src="path/to/profile-pic.jpg" alt="User Profile Picture">
-                    <h5>USERNAME</h5>
-                    <p>user@example.com</p>
+                    <img src="{{ user.profile.image.url }}" alt="User Profile Picture" class="rounded-circle" id="navbar-profile-picture">
+                    <h5>{{ user.username }}</h5>
+                    <p>{{ user.email }}</p>
+                    <p>{{ user.profile.occupation }}</p>
+                    <p>{{ user.profile.age }} tuổi</p>
+                    <a href="{% url 'account_settings' %}">Manage Account</a>
                 </div>
     
                 <!-- Menu -->
@@ -140,6 +150,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'forecast_finance' %}">
                             <span>🔮</span> Financial Forecasting
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'account_settings' %}">
+                            <span>🔮</span> Personal Account
                         </a>
                     </li>
                 </ul>

@@ -18,7 +18,9 @@ import calendar
 from datetime import datetime
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate
-
+from .forms import UserUpdateForm, ProfileUpdateForm
+from .models import Profile
+from django.http import JsonResponse
 # Trang chủ
 def home(request):
     return render(request, 'finance/home.html')
@@ -254,3 +256,36 @@ def user_login(request):
         form = AuthenticationForm()
 
     return render(request, 'registration/login.html', {'form': form})
+
+
+@login_required
+def account_settings(request):
+    user = request.user
+    profile, created = Profile.objects.get_or_create(user=user)
+    
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=user)
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Your account has been updated!')
+            
+            if request.is_ajax():
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Your account has been updated!',
+                    'image_url': profile.image.url
+                })
+            return redirect('account_settings')
+    
+    else:
+        user_form = UserUpdateForm(instance=user)
+        profile_form = ProfileUpdateForm(instance=profile)
+    
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form
+    }
+    
+    return render(request, 'finance/account_settings.html', context)
