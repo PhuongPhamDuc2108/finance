@@ -11,3 +11,4 @@ class YourAppConfig(AppConfig):
 
     def ready(self):
         import your_app_name.signals
+
