@@ -21,6 +21,11 @@ from django.contrib.auth import login, authenticate
 from .forms import UserUpdateForm, ProfileUpdateForm
 from .models import Profile
 from django.http import JsonResponse
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+import google.generativeai as genai
 # Trang chủ
 def home(request):
     return render(request, 'finance/home.html')
@@ -289,3 +294,84 @@ def account_settings(request):
     }
     
     return render(request, 'finance/account_settings.html', context)
+
+genai.configure(api_key="AIzaSyCvqVF9DZwKB9iuNsin6QvICcTZoQTgY3I")
+
+@csrf_exempt
+@require_POST
+def ask_gemini(request):
+    try:
+        data = json.loads(request.body)
+        user_input = data.get("message", "")
+        financial_data = data.get("financial_data", {})
+
+        # Get user profile and financial data
+        profile = Profile.objects.get(user=request.user)
+        incomes = Income.objects.filter(user=request.user).order_by('-date')[:5]
+        expenses = Expense.objects.filter(user=request.user).order_by('-date')[:5]
+        
+        # Prepare detailed context for the AI
+        income_transactions = '\n'.join([f'- {i.source}: {i.amount} on {i.date}' for i in incomes])
+        expense_transactions = '\n'.join([f'- {e.category}: {e.amount} on {e.date}' for e in expenses])
+        
+        context = f"""
+        User Profile:
+        - Age: {profile.age or 'Not specified'}
+        - Occupation: {profile.occupation or 'Not specified'}
+
+        Financial Summary:
+        - Total Income: {financial_data.get('total_income', 'N/A')}
+        - Total Expense: {financial_data.get('total_expense', 'N/A')}
+        - Balance: {financial_data.get('balance', 'N/A')}
+
+        Recent Income Transactions:
+        {income_transactions}
+
+        Recent Expense Transactions:
+        {expense_transactions}
+
+        Financial Question:
+        {user_input}
+
+        Please provide personalized advice considering:
+        1. The user's financial patterns
+        2. Their occupation and life stage
+        3. Practical budgeting strategies
+        4. Local financial context (Vietnam)
+        """
+
+        model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+        chat = model.start_chat(history=[])
+        response = chat.send_message(context)
+
+        # Format response with proper bullet points and line breaks
+        reply = response.text.strip()
+        
+        # Split into paragraphs at double newlines
+        paragraphs = [p.strip() for p in reply.split('\n\n') if p.strip()]
+        
+        # Format each paragraph
+        formatted_paragraphs = []
+        for para in paragraphs:
+            # Add bullet points for lists
+            if para.startswith('- ') or para.startswith('* '):
+                lines = para.split('\n')
+                formatted_lines = []
+                for line in lines:
+                    if line.strip().startswith(('- ', '* ')):
+                        formatted_lines.append(f"• {line[2:].strip()}")
+                    else:
+                        formatted_lines.append(line.strip())
+                formatted_paragraphs.append('\n'.join(formatted_lines))
+            else:
+                # Add proper line breaks for regular text
+                sentences = [s.strip() for s in para.split('. ') if s.strip()]
+                formatted_paragraphs.append('.\n'.join(sentences) + ('.' if not para.endswith('.') else ''))
+        
+        # Combine all paragraphs with double newlines
+        formatted_reply = '\n\n'.join(formatted_paragraphs)
+        
+        return JsonResponse({"response": formatted_reply})
+
+    except Exception as e:
+        return JsonResponse({"response": f"Lỗi: {str(e)}"}, status=500)

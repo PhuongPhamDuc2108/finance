@@ -1,16 +1,26 @@
-/* Định dạng Sidebar */
-.sidebar {
-    width: 230px; /* Giảm chiều rộng một chút để không chiếm quá nhiều không gian */
-    height: 100vh; /* Chiều cao 100% màn hình */
-    background-color: #ffffff; /* Màu nền trắng */
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ cho sidebar */
-    padding: 20px 15px; /* Căn chỉnh padding */
-    position: fixed; /* Cố định sidebar */
-    top: 0;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+/* Modern color variables */
+:root {
+    --primary: #8A2BE2;
+    --secondary: #00BFFF;
+    --accent: #7CFC00;
+    --text: #2C3E50;
+    --light: #FFFFFF;
+    --dark: #1A1A2E;
+}
+
+/* Base styles */
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: var(--text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Animated sidebar */
+.sidebar:hover {
+    transform: translateX(5px);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.3);
 }
 
 /* Định dạng phần User Info */
@@ -50,20 +60,21 @@
 .nav-link {
     display: flex;
     align-items: center;
-    padding: 10px;
-    border-radius: 8px;
+    padding: 12px 15px;
+    border-radius: 12px;
     font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    transition: background 0.3s ease;
+    font-weight: 600;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.7);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .nav-link:hover {
-    transform: scale(1.05); /* Phóng to nhẹ */
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2); /* Hiệu ứng nổi bật */
-    z-index: 10;
-    position: relative;
-    background: rgb(189, 189, 240);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    background: var(--primary);
+    color: white;
 }
 
 /* Căn chỉnh icon và chữ */
@@ -75,21 +86,23 @@
 /* Nút đăng xuất */
 .logout-btn {
     width: 100%;
-    background-color: #dc3545;
+    background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
     color: white;
-    padding: 10px;
+    padding: 12px;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 14px;
-    font-weight: bold;
-    transition: background 0.3s ease;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .logout-btn:hover {
-    background-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 75, 43, 0.4);
 }
 
 /* Định dạng phần nội dung chính */

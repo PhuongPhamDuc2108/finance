@@ -16,4 +16,5 @@ urlpatterns = [
     path('delete_expense/<int:expense_id>/', views.delete_expense, name='delete_expense'),
     path('login/', views.user_login, name='login'), 
     path('account/', views.account_settings, name='account_settings'),
+    path('ask/', views.ask_gemini, name='ask_gemini'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
