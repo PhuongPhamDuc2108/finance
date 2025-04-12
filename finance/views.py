@@ -375,3 +375,26 @@ def ask_gemini(request):
 
     except Exception as e:
         return JsonResponse({"response": f"Lỗi: {str(e)}"}, status=500)
+
+@csrf_exempt
+@require_POST
+def process_voice_command(request):
+    try:
+        data = json.loads(request.body)
+        command = data.get("command", "").lower()
+        
+        # First try to handle simple commands directly
+        if "thêm thu nhập" in command or "thêm khoản thu" in command:
+            return JsonResponse({"action": "navigate", "url": "/add_income"})
+        elif "thêm chi tiêu" in command or "thêm khoản chi" in command:
+            return JsonResponse({"action": "navigate", "url": "/add_expense"})
+        elif "báo cáo" in command or "xem báo cáo" in command:
+            return JsonResponse({"action": "navigate", "url": "/financial_report"})
+        elif "trang chủ" in command or "về trang chủ" in command:
+            return JsonResponse({"action": "navigate", "url": "/"})
+            
+        # For complex commands, use AI
+        return ask_gemini(request)
+        
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

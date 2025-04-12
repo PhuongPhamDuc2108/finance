@@ -17,4 +17,5 @@ urlpatterns = [
     path('login/', views.user_login, name='login'), 
     path('account/', views.account_settings, name='account_settings'),
     path('ask/', views.ask_gemini, name='ask_gemini'),
+    path('process_voice_command/', views.process_voice_command, name='process_voice_command'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
