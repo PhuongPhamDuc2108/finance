@@ -320,112 +320,161 @@
 
     <!-- Voice Recognition -->
     <div id="voice-control" style="position: fixed; bottom: 20px; left: 20px; z-index: 1000;">
-        <button id="mic-button" aria-label="Voice control" title="Nhấn để nói" style="background: #8A2BE2; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer;">
+        <button id="mic-button" aria-label="Voice control" title="Nhấn để bắt đầu ghi âm" style="background: #8A2BE2; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer;">
             <i class="fas fa-microphone"></i>
         </button>
         <div id="voice-result" style="display: none; background: white; padding: 10px; border-radius: 5px; margin-top: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.2);"></div>
     </div>
 
+    <!-- Include external voice recognition script with click-to-toggle behavior -->
     <script>
-        // Khởi tạo nhận dạng giọng nói tự động
-        document.addEventListener('DOMContentLoaded', function() {
-            const voiceResult = document.getElementById('voice-result');
-            let recognition;
+        document.addEventListener('DOMContentLoaded', function () {
+        const micButton = document.getElementById('mic-button');
+        const voiceResult = document.getElementById('voice-result');
 
-            // Load Font Awesome
-            const fa = document.createElement('link');
-            fa.rel = 'stylesheet';
-            fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
-            document.head.appendChild(fa);
+        const fa = document.createElement('link');
+        fa.rel = 'stylesheet';
+        fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+        document.head.appendChild(fa);
 
-            // Kiểm tra trình duyệt hỗ trợ
-            if (!('webkitSpeechRecognition' in window)) {
-                voiceResult.style.display = 'block';
-                voiceResult.textContent = 'Trình duyệt của bạn không hỗ trợ nhận dạng giọng nói. Vui lòng sử dụng Chrome hoặc Edge.';
-                return;
-            }
+        if (!('webkitSpeechRecognition' in window)) {
+            micButton.disabled = true;
+            micButton.title = 'Trình duyệt không hỗ trợ nhận dạng giọng nói';
+            voiceResult.style.display = 'block';
+            voiceResult.textContent = 'Trình duyệt của bạn không hỗ trợ nhận dạng giọng nói. Vui lòng sử dụng Chrome hoặc Edge.';
+            return;
+        }
 
-            // Tạo recognition instance
+        let recognition = null;
+        let isRecording = false;
+
+        function initRecognition() {
             recognition = new webkitSpeechRecognition();
-            recognition.continuous = true; // Nghe liên tục
-            recognition.interimResults = true;
+            recognition.continuous = false;
+            recognition.interimResults = false;
             recognition.lang = 'vi-VN';
 
-            // Bắt đầu nhận dạng tự động
-            try {
-                recognition.start();
+            recognition.onstart = function () {
+                micButton.classList.add('recording');
+                micButton.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+                micButton.title = 'Đang ghi âm...';
                 voiceResult.style.display = 'block';
-                voiceResult.textContent = 'Hệ thống đang lắng nghe...';
-            } catch (error) {
-                voiceResult.textContent = 'Lỗi khi bắt đầu nhận dạng: ' + error.message;
-            }
+                voiceResult.textContent = 'Đang nghe... Hãy nói lệnh của bạn';
+            };
 
-            recognition.onresult = function(event) {
-                const transcript = event.results[event.results.length - 1][0].transcript;
-                voiceResult.textContent = `Nhận diện: ${transcript}`;
+            recognition.onend = function () {
+                micButton.classList.remove('recording');
+                micButton.innerHTML = '<i class="fas fa-microphone"></i>';
+                micButton.title = 'Nhấn phím "m" để ghi âm';
+                recognition = null;
+                isRecording = false;
+            };
+
+            recognition.onerror = function (event) {
+                console.error('Recording error:', event.error);
+            };
+
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                voiceResult.textContent = `Bạn nói: ${transcript}`;
                 processVoiceCommand(transcript);
             };
+        }
 
-            recognition.onerror = function(event) {
-                if (event.error !== 'no-speech') {
-                    voiceResult.textContent = 'Lỗi: ' + event.error;
+        function handleRecordingToggle() {
+            if (isRecording) {
+                if (recognition) {
+                    recognition.stop();
+                    voiceResult.textContent = 'Đã dừng ghi âm. Đang xử lý...';
                 }
-            };
-
-            function processVoiceCommand(command) {
-                command = command.toLowerCase().trim();
-                
-                // Xử lý tất cả các lệnh chức năng
-                const commands = {
-                    // Điều hướng
-                    'trang chủ|về trang chủ|trang đầu': "{% url 'home' %}",
-                    'thêm thu nhập|thêm khoản thu|nhập thu nhập': "{% url 'add_income' %}",
-                    'thêm chi tiêu|thêm khoản chi|nhập chi tiêu': "{% url 'add_expense' %}",
-                    'báo cáo|xem báo cáo|thống kê': "{% url 'financial_report' %}",
-                    'dự báo|dự đoán|forecast': "{% url 'forecast_finance' %}",
-                    'tài khoản|cài đặt|account': "{% url 'account_settings' %}",
-                    'đăng nhập|login': "{% url 'login' %}",
-                    'đăng ký|register': "{% url 'register' %}",
-                    'đăng xuất|logout': "{% url 'logout' %}",
-                    
-                    // Thao tác form
-                    'lưu|gửi|submit': () => document.querySelector('form')?.submit(),
-                    'quay lại|back': () => window.history.back(),
-                    'làm mới|refresh': () => location.reload(),
-                    
-                    // Xử lý thu nhập/chi tiêu
-                    'thêm (.*?) (\\d+)': (type, amount) => {
-                        if (window.location.pathname.includes('income') || window.location.pathname.includes('expense')) {
-                            document.getElementById('id_description').value = type;
-                            document.getElementById('id_amount').value = amount.replace(/\D/g, '');
-                            document.getElementById('id_date').value = new Date().toISOString().split('T')[0];
-                            setTimeout(() => document.querySelector('form').submit(), 500);
-                        }
-                    }
-                };
-
-                // Tìm và thực thi lệnh phù hợp
-                for (const [pattern, action] of Object.entries(commands)) {
-                    const regex = new RegExp(pattern, 'i');
-                    const match = command.match(regex);
-                    
-                    if (match) {
-                        if (typeof action === 'string') {
-                            window.location.href = action;
-                        } else if (typeof action === 'function') {
-                            if (match.length > 1) {
-                                action(...match.slice(1));
-                            } else {
-                                action();
-                            }
-                        }
-                        return;
-                    }
+            } else {
+                initRecognition();
+                try {
+                    recognition.start();
+                    isRecording = true;
+                } catch (error) {
+                    console.error('Start error:', error);
                 }
+            }
+        }
 
-                voiceResult.textContent += '\nKhông nhận diện được lệnh. Vui lòng thử lại.';
+        // Nhấn phím "m" để bật/tắt thu âm
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'm' || event.key === 'M') {
+                handleRecordingToggle();
             }
         });
+
+        micButton.title = 'Nhấn phím "m" để ghi âm';
+
+        async function processVoiceCommand(command) {
+            command = command.toLowerCase();
+
+            if (window.location.pathname === "{% url 'add_income' %}") {
+                const incomeMatch = command.match(/(.+?)\s+(\d+)/);
+                if (incomeMatch) {
+                    const type = incomeMatch[1].trim();
+                    const amount = parseInt(incomeMatch[2].replace(/\D/g, ''));
+
+                    document.getElementById('id_description').value = type;
+                    document.getElementById('id_amount').value = amount;
+                    document.getElementById('id_date').value = new Date().toISOString().split('T')[0];
+
+                    setTimeout(() => {
+                        document.querySelector('form').submit();
+                        setTimeout(() => {
+                            window.location.href = "{% url 'financial_report' %}";
+                        }, 1000);
+                    }, 500);
+
+                    voiceResult.textContent = `Đã thêm ${type} ${amount.toLocaleString()}đ và chuyển trang...`;
+                    return;
+                }
+            }
+
+            try {
+                voiceResult.textContent = 'Đang xử lý lệnh...';
+                const response = await fetch("{% url 'process_voice_command' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ command })
+                });
+
+                const data = await response.json();
+
+                if (data.action === "navigate") {
+                    voiceResult.textContent = `Đang chuyển đến: ${data.url}`;
+                    setTimeout(() => window.location.href = data.url, 1000);
+                } else if (data.response) {
+                    voiceResult.textContent = `AI: ${data.response}`;
+                } else {
+                    voiceResult.textContent += '\nKhông nhận diện được lệnh. Vui lòng thử lại.';
+                }
+            } catch (error) {
+                console.error('Voice command error:', error);
+                voiceResult.textContent = 'Có lỗi xảy ra khi xử lý lệnh. Vui lòng thử lại.';
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
