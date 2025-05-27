@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <h2 class="text-center">Dự Báo Tài Chính</h2>
 
-    
+
     <div class="row mt-4">
         <div class="col-md-12">
             <h4>Thông Tin Tài Chính</h4>
@@ -15,7 +15,7 @@
         </div>
     </div>
 
-   
+
     <div class="row mt-4">
         <div class="col-md-12 text-center">
             <h4>Biểu Đồ Thu Nhập và Chi Tiêu Thực Tế</h4>
@@ -23,7 +23,7 @@
         </div>
     </div>
 
-    
+
     <div class="row mt-4">
         <div class="col-md-12 text-center">
             <h4>Biểu Đồ Dự Báo Thu Nhập và Chi Tiêu (Dự Báo AI)</h4>
@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    
+
     <div class="row mt-4">
         <div class="col-md-12">
             <h4>Kết Luận</h4>
@@ -39,7 +39,7 @@
         </div>
     </div>
 
-   
+
     <div class="row mt-4">
         <div class="col-md-12">
             <h4>Lời Khuyên Dự Báo</h4>
@@ -48,141 +48,15 @@
     </div>
 </div>
 
-<!-- Thêm Chart.js -->
+<!-- Hidden inputs for chart data -->
+<input type="hidden" id="months-data" value='{{ months|safe }}'>
+<input type="hidden" id="income-values-data" value='{{ income_values|safe }}'>
+<input type="hidden" id="expense-values-data" value='{{ expense_values|safe }}'>
+<input type="hidden" id="predicted-income-data" value='{{ predicted_income|safe }}'>
+<input type="hidden" id="predicted-expense-data" value='{{ predicted_expense|safe }}'>
+
+<!-- JavaScript Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
-<script>
-    // Lấy dữ liệu từ Django context
-    const months = JSON.parse('{{ months|escapejs }}');  // Danh sách tháng
-    const incomeValues = JSON.parse('{{ income_values|escapejs }}');  // Thu nhập theo tháng
-    const expenseValues = JSON.parse('{{ expense_values|escapejs }}');  // Chi tiêu theo tháng
-    const predictedIncome = JSON.parse('{{ predicted_income|escapejs }}');  // Dự đoán thu nhập
-    const predictedExpense = JSON.parse('{{ predicted_expense|escapejs }}');  // Dự đoán chi tiêu
-
-    // Vẽ biểu đồ thu nhập và chi tiêu thực tế (Biểu đồ 1)
-    const actualCtx = document.getElementById('actualChart').getContext('2d');
-    const actualChart = new Chart(actualCtx, {
-        type: 'line',  // line chartrt
-        data: {
-            labels: months,  // Các tháng được hiển thị trên trục X
-            datasets: [
-                {
-                    label: 'Thu Nhập Thực Tế',
-                    data: incomeValues,  // Dữ liệu thu nhập theo tháng
-                    borderColor: 'rgba(75, 192, 192, 1)', 
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',  
-                    borderWidth: 2,
-                    tension: 0.4, 
-                },
-                {
-                    label: 'Chi Tiêu Thực Tế',
-                    data: expenseValues,  // Dữ liệu chi tiêu theo tháng
-                    borderColor: 'rgba(255, 99, 132, 1)',  
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',  
-                    borderWidth: 2,
-                    tension: 0.4,  
-                },
-            ],
-        },
-        options: {
-            responsive: true,  // Đảm bảo biểu đồ responsive
-            plugins: {
-                legend: {
-                    position: 'top',  // Đặt legend ở phía trên
-                },
-                tooltip: {
-                    enabled: true,  // Bật tooltip khi hover vào dữ liệu
-                },
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Tháng',  
-                    },
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Số Tiền (VND)', 
-                    },
-                    beginAtZero: true, 
-                },
-            },
-        },
-    });
-
-    // Vẽ biểu đồ dự đoán thu nhập và chi tiêu (Biểu đồ 2)
-    const forecastCtx = document.getElementById('forecastChart').getContext('2d');
-    const forecastChart = new Chart(forecastCtx, {
-        type: 'line',  
-        data: {
-            labels: months,  
-            datasets: [
-                {
-                    label: 'Thu Nhập Thực Tế',
-                    data: incomeValues,  // Dữ liệu thu nhập theo tháng
-                    borderColor: 'rgba(75, 192, 192, 1)',  
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)', 
-                    borderWidth: 2,
-                    tension: 0.4,  
-                },
-                {
-                    label: 'Chi Tiêu Thực Tế',
-                    data: expenseValues,  // Dữ liệu chi tiêu theo tháng
-                    borderColor: 'rgba(255, 99, 132, 1)',  
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',  
-                    borderWidth: 2,
-                    tension: 0.4,  
-                },
-                {
-                    label: 'Dự Báo Thu Nhập (AI)',
-                    data: predictedIncome,  // Dự đoán thu nhập cho các tháng tiếp theo
-                    borderColor: 'rgba(0, 255, 0, 1)',  
-                    backgroundColor: 'rgba(0, 255, 0, 0.2)', 
-                    borderWidth: 2,
-                    borderDash: [5, 5],  
-                    tension: 0.4,  
-                },
-                {
-                    label: 'Dự Báo Chi Tiêu (AI)',
-                    data: predictedExpense,  // Dự đoán chi tiêu cho các tháng tiếp theo
-                    borderColor: 'rgba(255, 165, 0, 1)',  
-                    backgroundColor: 'rgba(255, 165, 0, 0.2)', 
-                    borderWidth: 2,
-                    borderDash: [5, 5],  
-                    tension: 0.4,  
-                },
-            ],
-        },
-        options: {
-            responsive: true,  
-            plugins: {
-                legend: {
-                    position: 'top', 
-                },
-                tooltip: {
-                    enabled: true,  
-                },
-            },
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Tháng',  
-                    },
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Số Tiền (VND)',  
-                    },
-                    beginAtZero: true,  
-                },
-            },
-        },
-    });
-</script>
+<script src="/static/js/forecast_finance.js?v=1.0.1"></script>
 
 {% endblock %}
