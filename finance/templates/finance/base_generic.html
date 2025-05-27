@@ -162,31 +162,48 @@
         }
         #chat-popup {
             display: none;
-            position: fixed; bottom: 80px; right: 20px;
-            width: 300px; background: white;
-            border: 1px solid #ccc; border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
             overflow: hidden;
-            z-index: 999;
+            z-index: 9999;
         }
         #chat-header {
-            background: #007bff; color: white; padding: 10px;
-            font-weight: bold; display: flex;
-            justify-content: space-between; align-items: center;
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         #chat-body {
-            max-height: 300px; overflow-y: auto;
+            max-height: 300px;
+            min-height: 100px;
+            overflow-y: auto;
             padding: 10px;
+            background-color: #f8f9fa;
         }
         #chat-input {
-            width: 100%; border: none; border-top: 1px solid #ccc;
-            padding: 10px; resize: none;
+            width: 100%;
+            border: none;
+            border-top: 1px solid #ccc;
+            padding: 10px;
+            resize: none;
         }
         button {
-            width: 100%; background: #28a745; color: white;
-            padding: 10px; border: none; cursor: pointer;
+            width: 100%;
+            background: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
         }
-
     </style>
 </head>
 <body>
@@ -196,7 +213,7 @@
             <div>
                 <div class="navbar-brand d-flex align-items-center mb-4">
                     <a class="nav-link" href="{% url 'home' %}">
-                        
+
                         <span class="fs-4"></span>
                         <span class="ms-2 fw-bold">Finance Management</span>
                     </a>
@@ -210,7 +227,7 @@
                     <p>{{ user.profile.age }} tuổi</p>
                     <a href="{% url 'account_settings' %}">Manage Account</a>
                 </div>
-    
+
                 <!-- Menu -->
                 <ul class="navbar-nav">
                     <li class="nav-item">
@@ -240,7 +257,7 @@
                     </li>
                 </ul>
             </div>
-    
+
             <!-- Đăng Xuất -->
             <div>
                 {% if user.is_authenticated %}
@@ -267,12 +284,12 @@
 
         <!-- Chat Popup -->
         <div id="chat-popup">
-            <div id="chat-header">ChatGPT Assistant <span onclick="toggleChat()">❌</span></div>
+            <div id="chat-header">AI Tài Chính <span onclick="toggleChat()">❌</span></div>
             <div id="chat-body"></div>
             <textarea id="chat-input" placeholder="Nhập câu hỏi..."></textarea>
             <button onclick="sendMessage()">Gửi</button>
         </div>
-    
+
         <!-- Nội dung chính -->
         <div class="main-content">
             {% block content %}
@@ -284,23 +301,28 @@
             const popup = document.getElementById("chat-popup");
             popup.style.display = (popup.style.display === "none" || popup.style.display === "") ? "block" : "none";
         }
-        
+
         function sendMessage() {
             const input = document.getElementById("chat-input");
             const message = input.value.trim();
             if (!message) return;
             input.value = "";
-        
+
             const chatBody = document.getElementById("chat-body");
             chatBody.innerHTML += `<div><strong>Bạn:</strong> ${message}</div>`;
-        
+
+            // Add a loading message
+            const loadingId = 'loading-' + Date.now();
+            chatBody.innerHTML += `<div id="${loadingId}"><strong>AI:</strong><br>Đang xử lý...</div>`;
+            chatBody.scrollTop = chatBody.scrollHeight;
+
             fetch("{% url 'ask_gemini' %}", {
                 method: "POST",
-                headers: { 
-                    "Content-Type": "application/json", 
+                headers: {
+                    "Content-Type": "application/json",
                     "X-CSRFToken": "{{ csrf_token }}"
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     message,
                     financial_data: {
                         total_income: "{{ total_income|default:'0' }}",
@@ -309,172 +331,286 @@
                     }
                 })
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! Status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then(data => {
-                chatBody.innerHTML += `<div><strong>AI:</strong> ${data.response}</div>`;
+                // Remove the loading message
+                const loadingElement = document.getElementById(loadingId);
+                if (loadingElement) {
+                    loadingElement.remove();
+                }
+
+                // Check if response exists
+                const responseText = data && data.response ? data.response : "Không nhận được phản hồi từ máy chủ. Vui lòng thử lại.";
+                chatBody.innerHTML += `<div><strong>AI:</strong><br>${responseText.replace(/\n/g, '<br>')}</div>`;
+                chatBody.scrollTop = chatBody.scrollHeight;
+            })
+            .catch(error => {
+                // Remove the loading message
+                const loadingElement = document.getElementById(loadingId);
+                if (loadingElement) {
+                    loadingElement.remove();
+                }
+
+                console.error('Error:', error);
+                chatBody.innerHTML += `<div><strong>AI:</strong><br>Đã xảy ra lỗi: ${error.message}. Vui lòng thử lại.</div>`;
                 chatBody.scrollTop = chatBody.scrollHeight;
             });
         }
-        
-        </script>
+    </script>
 
     <!-- Voice Recognition -->
     <div id="voice-control" style="position: fixed; bottom: 20px; left: 20px; z-index: 1000;">
-        <button id="mic-button" aria-label="Voice control" title="Nhấn để bắt đầu ghi âm" style="background: #8A2BE2; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer;">
+        <button id="mic-button" aria-label="Voice control" title="Nhấn vào nút hoặc phím 'm' để bắt đầu/dừng ghi âm" style="background: #8A2BE2; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer;">
             <i class="fas fa-microphone"></i>
         </button>
         <div id="voice-result" style="display: none; background: white; padding: 10px; border-radius: 5px; margin-top: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.2);"></div>
     </div>
 
-    <!-- Include external voice recognition script with click-to-toggle behavior -->
+    <!-- Include external voice recognition script -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-        const micButton = document.getElementById('mic-button');
-        const voiceResult = document.getElementById('voice-result');
+            const micButton = document.getElementById('mic-button');
+            const voiceResult = document.getElementById('voice-result');
 
-        const fa = document.createElement('link');
-        fa.rel = 'stylesheet';
-        fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
-        document.head.appendChild(fa);
+            const fa = document.createElement('link');
+            fa.rel = 'stylesheet';
+            fa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+            document.head.appendChild(fa);
 
-        if (!('webkitSpeechRecognition' in window)) {
-            micButton.disabled = true;
-            micButton.title = 'Trình duyệt không hỗ trợ nhận dạng giọng nói';
-            voiceResult.style.display = 'block';
-            voiceResult.textContent = 'Trình duyệt của bạn không hỗ trợ nhận dạng giọng nói. Vui lòng sử dụng Chrome hoặc Edge.';
-            return;
-        }
-
-        let recognition = null;
-        let isRecording = false;
-
-        function initRecognition() {
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'vi-VN';
-
-            recognition.onstart = function () {
-                micButton.classList.add('recording');
-                micButton.innerHTML = '<i class="fas fa-microphone-slash"></i>';
-                micButton.title = 'Đang ghi âm...';
+            if (!('webkitSpeechRecognition' in window)) {
+                micButton.disabled = true;
+                micButton.title = 'Trình duyệt không hỗ trợ nhận dạng giọng nói';
                 voiceResult.style.display = 'block';
-                voiceResult.textContent = 'Đang nghe... Hãy nói lệnh của bạn';
-            };
-
-            recognition.onend = function () {
-                micButton.classList.remove('recording');
-                micButton.innerHTML = '<i class="fas fa-microphone"></i>';
-                micButton.title = 'Nhấn phím "m" để ghi âm';
-                recognition = null;
-                isRecording = false;
-            };
-
-            recognition.onerror = function (event) {
-                console.error('Recording error:', event.error);
-            };
-
-            recognition.onresult = function (event) {
-                const transcript = event.results[0][0].transcript;
-                voiceResult.textContent = `Bạn nói: ${transcript}`;
-                processVoiceCommand(transcript);
-            };
-        }
-
-        function handleRecordingToggle() {
-            if (isRecording) {
-                if (recognition) {
-                    recognition.stop();
-                    voiceResult.textContent = 'Đã dừng ghi âm. Đang xử lý...';
-                }
-            } else {
-                initRecognition();
-                try {
-                    recognition.start();
-                    isRecording = true;
-                } catch (error) {
-                    console.error('Start error:', error);
-                }
-            }
-        }
-
-        // Nhấn phím "m" để bật/tắt thu âm
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'm' || event.key === 'M') {
-                handleRecordingToggle();
-            }
-        });
-
-        micButton.title = 'Nhấn phím "m" để ghi âm';
-
-        async function processVoiceCommand(command) {
-            command = command.toLowerCase();
-
-            if (window.location.pathname === "{% url 'add_income' %}") {
-                const incomeMatch = command.match(/(.+?)\s+(\d+)/);
-                if (incomeMatch) {
-                    const type = incomeMatch[1].trim();
-                    const amount = parseInt(incomeMatch[2].replace(/\D/g, ''));
-
-                    document.getElementById('id_description').value = type;
-                    document.getElementById('id_amount').value = amount;
-                    document.getElementById('id_date').value = new Date().toISOString().split('T')[0];
-
-                    setTimeout(() => {
-                        document.querySelector('form').submit();
-                        setTimeout(() => {
-                            window.location.href = "{% url 'financial_report' %}";
-                        }, 1000);
-                    }, 500);
-
-                    voiceResult.textContent = `Đã thêm ${type} ${amount.toLocaleString()}đ và chuyển trang...`;
-                    return;
-                }
+                voiceResult.textContent = 'Trình duyệt của bạn không hỗ trợ nhận dạng giọng nói. Vui lòng sử dụng Chrome hoặc Edge.';
+                return;
             }
 
-            try {
-                voiceResult.textContent = 'Đang xử lý lệnh...';
-                const response = await fetch("{% url 'process_voice_command' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({ command })
-                });
+            let recognition = null;
+            let isRecording = false;
 
-                const data = await response.json();
+            function initRecognition() {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'vi-VN';
 
-                if (data.action === "navigate") {
-                    voiceResult.textContent = `Đang chuyển đến: ${data.url}`;
-                    setTimeout(() => window.location.href = data.url, 1000);
-                } else if (data.response) {
-                    voiceResult.textContent = `AI: ${data.response}`;
+                recognition.onstart = function () {
+                    micButton.classList.add('recording');
+                    micButton.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+                    micButton.title = 'Đang ghi âm...';
+                    voiceResult.style.display = 'block';
+                    voiceResult.textContent = 'Đang nghe... Hãy nói lệnh của bạn';
+                };
+
+                recognition.onend = function () {
+                    micButton.classList.remove('recording');
+                    micButton.innerHTML = '<i class="fas fa-microphone"></i>';
+                    micButton.title = 'Nhấn vào nút hoặc phím "m" để bắt đầu/dừng ghi âm';
+                    recognition = null;
+                    isRecording = false;
+                };
+
+                recognition.onerror = function (event) {
+                    console.error('Recording error:', event.error);
+                };
+
+                recognition.onresult = function (event) {
+                    const transcript = event.results[0][0].transcript;
+                    voiceResult.textContent = `Bạn nói: ${transcript}`;
+                    processVoiceCommand(transcript);
+                };
+            }
+
+            function handleRecordingToggle() {
+                if (isRecording) {
+                    if (recognition) {
+                        recognition.stop();
+                        voiceResult.textContent = 'Đã dừng ghi âm. Đang xử lý...';
+                    }
                 } else {
-                    voiceResult.textContent += '\nKhông nhận diện được lệnh. Vui lòng thử lại.';
-                }
-            } catch (error) {
-                console.error('Voice command error:', error);
-                voiceResult.textContent = 'Có lỗi xảy ra khi xử lý lệnh. Vui lòng thử lại.';
-            }
-        }
-
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
+                    initRecognition();
+                    try {
+                        recognition.start();
+                        isRecording = true;
+                    } catch (error) {
+                        console.error('Start error:', error);
                     }
                 }
             }
-            return cookieValue;
-        }
-    });
+            // Nhấn phím "m" để bật/tắt thu âm
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'm' || event.key === 'M') {
+                    handleRecordingToggle();
+                }
+            });
 
+            micButton.title = 'Nhấn vào nút hoặc phím "m" để bắt đầu/dừng ghi âm';
+
+            async function processVoiceCommand(command) {
+                try {
+                    voiceResult.textContent = 'Đang xử lý lệnh...';
+                    const response = await fetch("{% url 'process_voice_command' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({ command })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.action === "navigate") {
+                        voiceResult.textContent = `Đang chuyển đến: ${data.url}`;
+                        setTimeout(() => window.location.href = data.url, 1000);
+                    } else if (data.action === "read_report") {
+                        voiceResult.textContent = "Đang đọc báo cáo tài chính...";
+                        // Create and dispatch a custom event for the voice command
+                        const event = new CustomEvent('voiceCommand', { 
+                            detail: { command: 'đọc báo cáo', text: data.text } 
+                        });
+                        document.dispatchEvent(event);
+
+                        // If we're not on the financial report page, navigate to it
+                        if (!window.location.pathname.includes('financial_report')) {
+                            setTimeout(() => window.location.href = "{% url 'financial_report' %}", 1000);
+                        } else {
+                            // If we're already on the financial report page, read the text directly
+                            readTextWithSpeechSynthesis(data.text);
+                        }
+                    } else if (data.action === "income_added") {
+                        voiceResult.textContent = data.message;
+                        // Show success notification
+                        showNotification('Thành công', data.message, 'success');
+                        // Refresh the page after 2 seconds to show the new data
+                        setTimeout(() => window.location.href = "{% url 'financial_report' %}", 2000);
+                    } else if (data.action === "expense_added") {
+                        voiceResult.textContent = data.message;
+                        // Show success notification
+                        showNotification('Thành công', data.message, 'success');
+                        // Refresh the page after 2 seconds to show the new data
+                        setTimeout(() => window.location.href = "{% url 'financial_report' %}", 2000);
+                    } else if (data.action === "income_deleted") {
+                        voiceResult.textContent = data.message;
+                        // Show success notification
+                        showNotification('Thành công', data.message, 'success');
+                        // Refresh the page after 2 seconds to show the new data
+                        setTimeout(() => window.location.href = "{% url 'financial_report' %}", 2000);
+                    } else if (data.action === "expense_deleted") {
+                        voiceResult.textContent = data.message;
+                        // Show success notification
+                        showNotification('Thành công', data.message, 'success');
+                        // Refresh the page after 2 seconds to show the new data
+                        setTimeout(() => window.location.href = "{% url 'financial_report' %}", 2000);
+                    } else if (data.response) {
+                        voiceResult.textContent = `AI: ${data.response}`;
+                    } else if (data.error) {
+                        voiceResult.textContent = `Lỗi: ${data.error}`;
+                        showNotification('Lỗi', data.error, 'error');
+                    } else {
+                        voiceResult.textContent += '\nKhông nhận diện được lệnh. Vui lòng thử lại.';
+                    }
+                } catch (error) {
+                    console.error('Voice command error:', error);
+                    voiceResult.textContent = 'Có lỗi xảy ra khi xử lý lệnh. Vui lòng thử lại.';
+                }
+            }
+
+            // Function to show notifications
+            function showNotification(title, message, type) {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.innerHTML = `
+                    <strong>${title}</strong>
+                    <p>${message}</p>
+                `;
+
+                // Add styles
+                notification.style.position = 'fixed';
+                notification.style.top = '20px';
+                notification.style.right = '20px';
+                notification.style.padding = '15px';
+                notification.style.borderRadius = '5px';
+                notification.style.zIndex = '9999';
+                notification.style.maxWidth = '300px';
+
+                if (type === 'success') {
+                    notification.style.backgroundColor = '#4CAF50';
+                    notification.style.color = 'white';
+                } else if (type === 'error') {
+                    notification.style.backgroundColor = '#f44336';
+                    notification.style.color = 'white';
+                }
+
+                // Add to document
+                document.body.appendChild(notification);
+
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'opacity 0.5s';
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 500);
+                }, 5000);
+            }
+
+            // Add click event to the mic button
+            micButton.addEventListener('click', handleRecordingToggle);
+
+            // Function to read text using speech synthesis
+            function readTextWithSpeechSynthesis(text) {
+                if ('speechSynthesis' in window) {
+                    // Create a new SpeechSynthesisUtterance object
+                    const speech = new SpeechSynthesisUtterance();
+
+                    // Set the text and language
+                    speech.text = text;
+                    speech.lang = 'vi-VN';
+                    speech.rate = 1.0;
+                    speech.pitch = 1.0;
+                    speech.volume = 1.0;
+
+                    // Get available voices
+                    const voices = window.speechSynthesis.getVoices();
+
+                    // Try to find a Vietnamese voice
+                    let vietnameseVoice = voices.find(voice => voice.lang.includes('vi'));
+
+                    // If no Vietnamese voice is found, use the default voice
+                    if (vietnameseVoice) {
+                        speech.voice = vietnameseVoice;
+                    }
+
+                    // Speak the text
+                    window.speechSynthesis.speak(speech);
+                } else {
+                    console.error('Speech synthesis not supported');
+                    showNotification('Lỗi', 'Trình duyệt không hỗ trợ đọc báo cáo', 'error');
+                }
+            }
+
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>

@@ -4,8 +4,16 @@
 {% block content %}
 <div class="container mt-4 bg-gray-100 p-6 rounded-lg shadow-lg">
     <h2 class="text-center mb-4 text-indigo-500">Báo Cáo Tài Chính</h2>
+
+    <!-- Text-to-Speech Button -->
+    <div class="text-center mb-4">
+        <button id="read-report-btn" class="btn btn-primary">
+            <i class="fas fa-volume-up"></i> Đọc Báo Cáo
+        </button>
+    </div>
+
     <div class="container mt-5">
-        
+
 
         <div class="row mt-4">
             <div class="col-md-6">
@@ -313,6 +321,74 @@
                 },
             },
         }
+    });
+</script>
+<!-- Text-to-Speech Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the financial summary from the context
+        const financialSummary = {{ financial_summary|safe }};
+
+        // Get the read report button
+        const readReportBtn = document.getElementById('read-report-btn');
+
+        // Check if the browser supports speech synthesis
+        if ('speechSynthesis' in window) {
+            // Add click event listener to the button
+            readReportBtn.addEventListener('click', function() {
+                readFinancialReport(financialSummary);
+            });
+        } else {
+            // If speech synthesis is not supported, disable the button
+            readReportBtn.disabled = true;
+            readReportBtn.innerHTML = 'Trình duyệt không hỗ trợ đọc báo cáo';
+        }
+
+        // Function to read the financial report
+        function readFinancialReport(text) {
+            // Create a new SpeechSynthesisUtterance object
+            const speech = new SpeechSynthesisUtterance();
+
+            // Set the text and language
+            speech.text = text;
+            speech.lang = 'vi-VN';
+            speech.rate = 1.0;
+            speech.pitch = 1.0;
+            speech.volume = 1.0;
+
+            // Get available voices
+            const voices = window.speechSynthesis.getVoices();
+
+            // Try to find a Vietnamese voice
+            let vietnameseVoice = voices.find(voice => voice.lang.includes('vi'));
+
+            // If no Vietnamese voice is found, use the default voice
+            if (vietnameseVoice) {
+                speech.voice = vietnameseVoice;
+            }
+
+            // Update the button to show that it's speaking
+            readReportBtn.innerHTML = '<i class="fas fa-volume-up"></i> Đang đọc...';
+            readReportBtn.disabled = true;
+
+            // When the speech ends, reset the button
+            speech.onend = function() {
+                readReportBtn.innerHTML = '<i class="fas fa-volume-up"></i> Đọc Báo Cáo';
+                readReportBtn.disabled = false;
+            };
+
+            // Speak the text
+            window.speechSynthesis.speak(speech);
+        }
+
+        // Handle voice commands for reading the report
+        document.addEventListener('voiceCommand', function(event) {
+            const command = event.detail.command.toLowerCase();
+
+            if (command.includes('đọc báo cáo') || command.includes('đọc kết quả') || command.includes('đọc chi tiêu')) {
+                readFinancialReport(financialSummary);
+            }
+        });
     });
 </script>
 {% endblock %}

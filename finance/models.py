@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from datetime import date
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
+
 class Income(models.Model):
     SOURCE_CHOICES = [
         ('Salary', 'Lương'),

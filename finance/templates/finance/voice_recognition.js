@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         recognition.onend = function () {
             micButton.classList.remove('recording');
             micButton.innerHTML = '<i class="fas fa-microphone"></i>';
-            micButton.title = 'Nhấn phím "m" để ghi âm';
+            micButton.title = 'Nhấn vào nút hoặc phím "m" để bắt đầu/dừng ghi âm';
             recognition = null;
             isRecording = false;
         };
@@ -75,36 +75,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    micButton.title = 'Nhấn phím "m" để ghi âm';
+    micButton.title = 'Nhấn vào nút hoặc phím "m" để bắt đầu/dừng ghi âm';
 
     async function processVoiceCommand(command) {
-        command = command.toLowerCase();
-
-        if (window.location.pathname === "{% url 'add_income' %}") {
-            const incomeMatch = command.match(/(.+?)\s+(\d+)/);
-            if (incomeMatch) {
-                const type = incomeMatch[1].trim();
-                const amount = parseInt(incomeMatch[2].replace(/\D/g, ''));
-
-                document.getElementById('id_description').value = type;
-                document.getElementById('id_amount').value = amount;
-                document.getElementById('id_date').value = new Date().toISOString().split('T')[0];
-
-                setTimeout(() => {
-                    document.querySelector('form').submit();
-                    setTimeout(() => {
-                        window.location.href = "{% url 'financial_report' %}";
-                    }, 1000);
-                }, 500);
-
-                voiceResult.textContent = `Đã thêm ${type} ${amount.toLocaleString()}đ và chuyển trang...`;
-                return;
-            }
-        }
-
         try {
             voiceResult.textContent = 'Đang xử lý lệnh...';
-            const response = await fetch("{% url 'process_voice_command' %}", {
+            const response = await fetch("/process_voice_command/", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,8 +94,45 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.action === "navigate") {
                 voiceResult.textContent = `Đang chuyển đến: ${data.url}`;
                 setTimeout(() => window.location.href = data.url, 1000);
+            } else if (data.action === "income_added") {
+                voiceResult.textContent = data.message;
+                // Show success notification
+                showNotification('Thành công', data.message, 'success');
+                // Refresh the page after 2 seconds to show the new data
+                setTimeout(() => window.location.href = "/financial_report/", 2000);
+            } else if (data.action === "expense_added") {
+                voiceResult.textContent = data.message;
+                // Show success notification
+                showNotification('Thành công', data.message, 'success');
+                // Refresh the page after 2 seconds to show the new data
+                setTimeout(() => window.location.href = "/financial_report/", 2000);
+            } else if (data.action === "income_deleted") {
+                voiceResult.textContent = data.message;
+                // Show success notification
+                showNotification('Thành công', data.message, 'success');
+                // Refresh the page after 2 seconds to show the new data
+                setTimeout(() => window.location.href = "/financial_report/", 2000);
+            } else if (data.action === "expense_deleted") {
+                voiceResult.textContent = data.message;
+                // Show success notification
+                showNotification('Thành công', data.message, 'success');
+                // Refresh the page after 2 seconds to show the new data
+                setTimeout(() => window.location.href = "/financial_report/", 2000);
+            } else if (data.action === "read_report") {
+                voiceResult.textContent = "Đang đọc báo cáo tài chính...";
+
+                // If we're not on the financial report page, navigate to it
+                if (!window.location.pathname.includes('financial_report')) {
+                    setTimeout(() => window.location.href = "/financial_report/", 1000);
+                } else {
+                    // If we're already on the financial report page, read the text directly
+                    readTextWithSpeechSynthesis(data.text);
+                }
             } else if (data.response) {
                 voiceResult.textContent = `AI: ${data.response}`;
+            } else if (data.error) {
+                voiceResult.textContent = `Lỗi: ${data.error}`;
+                showNotification('Lỗi', data.error, 'error');
             } else {
                 voiceResult.textContent += '\nKhông nhận diện được lệnh. Vui lòng thử lại.';
             }
@@ -127,6 +140,46 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Voice command error:', error);
             voiceResult.textContent = 'Có lỗi xảy ra khi xử lý lệnh. Vui lòng thử lại.';
         }
+    }
+
+    // Function to show notifications
+    function showNotification(title, message, type) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <strong>${title}</strong>
+            <p>${message}</p>
+        `;
+
+        // Add styles
+        notification.style.position = 'fixed';
+        notification.style.top = '20px';
+        notification.style.right = '20px';
+        notification.style.padding = '15px';
+        notification.style.borderRadius = '5px';
+        notification.style.zIndex = '9999';
+        notification.style.maxWidth = '300px';
+
+        if (type === 'success') {
+            notification.style.backgroundColor = '#4CAF50';
+            notification.style.color = 'white';
+        } else if (type === 'error') {
+            notification.style.backgroundColor = '#f44336';
+            notification.style.color = 'white';
+        }
+
+        // Add to document
+        document.body.appendChild(notification);
+
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 5000);
     }
 
     function getCookie(name) {
@@ -142,5 +195,40 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         return cookieValue;
+    }
+
+    // Add click event to the mic button
+    micButton.addEventListener('click', handleRecordingToggle);
+
+    // Function to read text using speech synthesis
+    function readTextWithSpeechSynthesis(text) {
+        if ('speechSynthesis' in window) {
+            // Create a new SpeechSynthesisUtterance object
+            const speech = new SpeechSynthesisUtterance();
+
+            // Set the text and language
+            speech.text = text;
+            speech.lang = 'vi-VN';
+            speech.rate = 1.0;
+            speech.pitch = 1.0;
+            speech.volume = 1.0;
+
+            // Get available voices
+            const voices = window.speechSynthesis.getVoices();
+
+            // Try to find a Vietnamese voice
+            let vietnameseVoice = voices.find(voice => voice.lang.includes('vi'));
+
+            // If no Vietnamese voice is found, use the default voice
+            if (vietnameseVoice) {
+                speech.voice = vietnameseVoice;
+            }
+
+            // Speak the text
+            window.speechSynthesis.speak(speech);
+        } else {
+            console.error('Speech synthesis not supported');
+            showNotification('Lỗi', 'Trình duyệt không hỗ trợ đọc báo cáo', 'error');
+        }
     }
 });
