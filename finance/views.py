@@ -429,7 +429,7 @@ def generate_simple_response(user_input, financial_data, profile):
 
     return JsonResponse({"response": response})
 # Load environment variables
-HF_API_TOKEN = "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"
+
 HF_API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
 
 
