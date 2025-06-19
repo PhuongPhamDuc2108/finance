@@ -18,5 +18,6 @@ urlpatterns = [
     path('account/', views.account_settings, name='account_settings'),
     path('ask/', views.ask_gemini, name='ask_gemini'),
     path('process_voice_command/', views.process_voice_command, name='process_voice_command'),
+    path('speech_to_text/', views.speech_to_text, name='speech_to_text'),
     path('chat_health_check/', views.chat_health_check, name='chat_health_check'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
