@@ -429,11 +429,8 @@ def generate_simple_response(user_input, financial_data, profile):
 
     return JsonResponse({"response": response})
 # Load environment variables
-
+HF_API_TOKEN = os.getenv("HF_API_TOKEN")
 HF_API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
-
-
-
 
 def generate_simple_response(user_input, financial_data, profile):
     return JsonResponse({
@@ -1278,185 +1275,58 @@ def process_voice_command(request):
 # Global variable to store the transcribed text context
 speech_to_text_context = ""
 
+python
 @csrf_exempt
 @require_POST
 def speech_to_text(request):
     """
-    Endpoint to convert speech audio to text using Google's Speech-to-Text API.
+    Convert speech audio to text using Hugging Face's openai/whisper-large-v3 model.
     Expects a base64-encoded audio file in the request body.
     """
+    HF_ASR_MODEL = "openai/whisper-large-v3"
     global speech_to_text_context
-    import os
-    import tempfile
-
-    # Initialize temp paths to None
-    temp_path = None
-    temp_mp4_path = None
 
     try:
         data = json.loads(request.body)
         audio_data = data.get("audio")
-
         if not audio_data:
             return JsonResponse({"error": "No audio data provided"}, status=400)
 
-        # Decode the base64 audio data
-        try:
-            # Remove the data URL prefix if present
-            if "base64," in audio_data:
-                audio_data = audio_data.split("base64,")[1]
+        # Remove data URL prefix if present
+        if "base64," in audio_data:
+            audio_data = audio_data.split("base64,")[1]
+        audio_bytes = base64.b64decode(audio_data)
 
-            audio_bytes = base64.b64decode(audio_data)
-        except Exception as e:
-            return JsonResponse({"error": f"Error decoding audio: {str(e)}"}, status=400)
-
-        # Create a temporary file
-        temp_file = None
-        try:
-            # First try to save as MP4 (original format from browser)
-            fd, temp_mp4_path = tempfile.mkstemp(suffix='.mp4')
-            temp_file = os.fdopen(fd, 'wb')
-            temp_file.write(audio_bytes)
-            temp_file.close()
-
-            # Then convert to WAV format for Google Speech-to-Text
-            fd, temp_path = tempfile.mkstemp(suffix='.wav')
-            os.close(fd)
-
-            # Try to use ffmpeg if available (better quality conversion)
-            try:
-                import subprocess
-                subprocess.run(['ffmpeg', '-i', temp_mp4_path, '-ar', '16000', '-ac', '1', temp_path], 
-                              check=True, capture_output=True)
-                print("Successfully converted audio using ffmpeg")
-            except (subprocess.SubprocessError, FileNotFoundError) as e:
-                print(f"ffmpeg conversion failed: {str(e)}, using fallback method")
-                # Fallback: Just copy the bytes directly
-                with open(temp_mp4_path, 'rb') as src, open(temp_path, 'wb') as dst:
-                    dst.write(src.read())
-
-            # Clean up the temporary MP4 file
-            try:
-                os.remove(temp_mp4_path)
-            except Exception as e:
-                print(f"Error removing temporary MP4 file: {str(e)}")
-
-            # Initialize Google Cloud Speech-to-Text client
-            # Check if credentials file exists, otherwise use environment variables
-            credentials_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-            if credentials_path and os.path.exists(credentials_path):
-                credentials = service_account.Credentials.from_service_account_file(credentials_path)
-                client = speech.SpeechClient(credentials=credentials)
-            else:
-                # Use default credentials (environment variables or application default)
-                client = speech.SpeechClient()
-
-            # Read the audio file
-            with open(temp_path, 'rb') as f:
-                audio_content = f.read()
-
-            # Configure the request
-            audio = speech.RecognitionAudio(content=audio_content)
-
-            # Try to determine if the audio is in WAV format and get its properties
-            sample_rate_hertz = 48000  # Default sample rate
-            try:
-                import wave
-                with wave.open(temp_path, 'rb') as wav_file:
-                    sample_rate_hertz = wav_file.getframerate()
-            except Exception as e:
-                print(f"Could not determine audio properties: {str(e)}")
-
-            config = speech.RecognitionConfig(
-                encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-                sample_rate_hertz=sample_rate_hertz,
-                language_code="vi-VN",    # Vietnamese language
-                enable_automatic_punctuation=True,
-                model="latest_long",      # Use the latest long-form model for better accuracy
-                use_enhanced=True,        # Use enhanced model
-                alternative_language_codes=["en-US"],  # Also recognize English as fallback
-                speech_contexts=[
-                    speech.SpeechContext(
-                        phrases=[
-                            # Add common financial terms in Vietnamese and English
-                            "lương", "thu nhập", "chi tiêu", "thực phẩm", "giáo dục", "giải trí", "di chuyển", "tiền", "kinh doanh", "đầu tư",
-                            "salary", "income", "expense", "food", "education", "entertainment", "transport", "money", "business", "investment",
-                            # Add common command phrases
-                            "thêm thu nhập", "thêm chi tiêu", "xóa thu nhập", "xóa chi tiêu", "báo cáo", "trang chủ", "dự báo",
-                            "add income", "add expense", "delete income", "delete expense", "report", "home", "forecast",
-                            # Add specific amount patterns
-                            "100", "200", "300", "500", "1000", "2000", "5000", "10000", "100000", "1000000",
-                            # Add more specific command variations
-                            "thêm lương", "thêm tiền", "thêm kinh doanh", "thêm đầu tư",
-                            "thêm thực phẩm", "thêm giáo dục", "thêm giải trí", "thêm di chuyển",
-                            "lương 100", "tiền 200", "thực phẩm 300", "giáo dục 500", "giải trí 1000", "di chuyển 2000",
-                            "xóa lương", "xóa chi tiêu", "xóa thu nhập cuối cùng", "xóa chi tiêu cuối cùng",
-                            # Add navigation commands
-                            "đi đến trang chủ", "đi đến báo cáo", "đi đến thêm thu nhập", "đi đến thêm chi tiêu", "đi đến dự báo",
-                            "go to home", "go to report", "go to add income", "go to add expense", "go to forecast"
-                        ],
-                        boost=20.0  # Boost the recognition of these phrases
-                    )
-                ]
-            )
-
-            # Perform the speech recognition
-            response = client.recognize(config=config, audio=audio)
-
-            # Process the response
-            if response.results:
-                transcribed_text = ""
-                for result in response.results:
-                    transcribed_text += result.alternatives[0].transcript + " "
-
-                transcribed_text = transcribed_text.strip()
-
-                # Save the transcribed text in the global context
-                speech_to_text_context = transcribed_text
-
-                # Process the transcribed text directly
-                # Create a mock request with the transcribed text
-                mock_request = request
-                mock_request._body = json.dumps({"command": transcribed_text}).encode('utf-8')
-
-                # Process the command
-                response = process_voice_command(mock_request)
-
-                # Add the transcribed text to the response
-                response_data = json.loads(response.content)
-                response_data["text"] = transcribed_text
-                response_data["success"] = True
-
-                return JsonResponse(response_data)
-            else:
-                # No speech was recognized
-                return JsonResponse({
-                    "success": False,
-                    "error": "No speech was recognized. Please try again.",
-                    "fallback": True
-                })
-
-        except Exception as e:
-            # Log the error for debugging
-            print(f"Google Speech-to-Text error: {str(e)}")
-
-            # Fallback to browser-based speech recognition
+        # Call Hugging Face Inference API
+        headers = {
+            "Authorization": f"Bearer {HF_API_TOKEN}"
+        }
+        params = {
+            "language": "vi"  # Vietnamese
+        }
+        response = requests.post(
+            f"https://api-inference.huggingface.co/models/{HF_ASR_MODEL}",
+            headers=headers,
+            params=params,
+            data=audio_bytes,
+            timeout=60
+        )
+        if response.status_code == 200:
+            result = response.json()
+            text = result.get("text", "")
+            speech_to_text_context = text
+            # Optionally, process the command directly
+            mock_request = request
+            mock_request._body = json.dumps({"command": text}).encode('utf-8')
+            command_response = process_voice_command(mock_request)
+            response_data = json.loads(command_response.content)
+            response_data["text"] = text
+            response_data["success"] = True
+            return JsonResponse(response_data)
+        else:
             return JsonResponse({
                 "success": False,
-                "error": f"Error in speech recognition: {str(e)}",
-                "fallback": True
-            })
-        finally:
-            # Clean up all temporary files
-            for path in [temp_path, temp_mp4_path]:
-                if path and os.path.exists(path):
-                    try:
-                        os.remove(path)
-                    except Exception as e:
-                        print(f"Error removing temporary file {path}: {str(e)}")
-
+                "error": f"Hugging Face API error: {response.status_code} {response.text}"
+            }, status=500)
     except Exception as e:
-        return JsonResponse({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }, status=500)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
