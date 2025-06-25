@@ -428,7 +428,11 @@ def generate_simple_response(user_input, financial_data, profile):
         response = random.choice(responses)
 
     return JsonResponse({"response": response})
+from dotenv import load_dotenv
+load_dotenv('.env')
+load_dotenv('.env.local')
 # Load environment variables
+
 HF_API_TOKEN = os.getenv("HF_API_TOKEN")
 HF_API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
 
@@ -1275,15 +1279,11 @@ def process_voice_command(request):
 # Global variable to store the transcribed text context
 speech_to_text_context = ""
 
-python
-@csrf_exempt
-@require_POST
+HF_ASR_MODEL = "openai/whisper-large-v3"
 def speech_to_text(request):
     """
-    Convert speech audio to text using Hugging Face's openai/whisper-large-v3 model.
-    Expects a base64-encoded audio file in the request body.
+    Convert base64-encoded audio to text using Hugging Face ASR model.
     """
-    HF_ASR_MODEL = "openai/whisper-large-v3"
     global speech_to_text_context
 
     try:
@@ -1292,41 +1292,44 @@ def speech_to_text(request):
         if not audio_data:
             return JsonResponse({"error": "No audio data provided"}, status=400)
 
-        # Remove data URL prefix if present
+        # Remove base64 prefix if exists
         if "base64," in audio_data:
             audio_data = audio_data.split("base64,")[1]
+
         audio_bytes = base64.b64decode(audio_data)
 
-        # Call Hugging Face Inference API
+        # Set appropriate content type (assume audio is wav; adjust if needed)
         headers = {
-            "Authorization": f"Bearer {HF_API_TOKEN}"
+            "Authorization": f"Bearer {HF_API_TOKEN}",
+            "Content-Type": "audio/wav"  # hoặc audio/mpeg nếu là mp3
         }
-        params = {
-            "language": "vi"  # Vietnamese
-        }
+
         response = requests.post(
             f"https://api-inference.huggingface.co/models/{HF_ASR_MODEL}",
             headers=headers,
-            params=params,
             data=audio_bytes,
             timeout=60
         )
+
         if response.status_code == 200:
             result = response.json()
             text = result.get("text", "")
             speech_to_text_context = text
-            # Optionally, process the command directly
+
+            # Gọi xử lý command (nếu có)
             mock_request = request
-            mock_request._body = json.dumps({"command": text}).encode('utf-8')
+            mock_request._body = json.dumps({"command": text}).encode("utf-8")
             command_response = process_voice_command(mock_request)
             response_data = json.loads(command_response.content)
             response_data["text"] = text
             response_data["success"] = True
             return JsonResponse(response_data)
+
         else:
             return JsonResponse({
                 "success": False,
                 "error": f"Hugging Face API error: {response.status_code} {response.text}"
             }, status=500)
+
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
